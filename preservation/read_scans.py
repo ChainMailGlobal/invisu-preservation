@@ -60,13 +60,14 @@ TILE_PROMPT = (
 
 def repair_json(fragment: str):
     """Salvage a truncated response: close the texts array at the last complete
-    item. Better a partial transcription than none."""
+    item. Better a partial transcription than none. Tails cover both the
+    asked-for object and a bare array of items."""
     pos = len(fragment)
     for _ in range(60):
         pos = fragment.rfind("}", 0, pos)
         if pos <= 0:
             return None
-        for tail in ("]}", "}]}"):
+        for tail in ("]", "}]", "]}", "}]}"):
             try:
                 return json.loads(fragment[:pos + 1] + tail)
             except Exception:
@@ -75,13 +76,25 @@ def repair_json(fragment: str):
 
 
 def parse_json(out: str):
-    i, j = out.find("{"), out.rfind("}")
-    if i < 0:
+    """Model text -> dict with a "texts" list. Accepts the asked-for object or
+    a bare array of items — Nemotron 3 Nano Omni answers the quadrant prompt
+    with `[{"t": ..., "box": [...]}, ...]` and no wrapping object, which the
+    first version of this parser threw away (92 tile replies, zero merged)."""
+    i_obj, i_arr = out.find("{"), out.find("[")
+    if i_arr >= 0 and (i_obj < 0 or i_arr < i_obj):
+        start = i_arr
+    elif i_obj >= 0:
+        start = i_obj
+    else:
         return None
+    end = max(out.rfind("}"), out.rfind("]"))
     try:
-        return json.loads(out[i:j + 1])
+        d = json.loads(out[start:end + 1])
     except Exception:
-        return repair_json(out[i:])
+        d = repair_json(out[start:])
+    if isinstance(d, list):
+        d = {"texts": d}
+    return d if isinstance(d, dict) else None
 
 
 def thinking_extra(mode: str):
@@ -150,7 +163,15 @@ def norm_box(box, W, H, tw, th):
         fx, fy = W / 1000.0, H / 1000.0     # per-mille grid (some VLMs)
     else:
         fx, fy = W / tw, H / th             # pixels of the sent thumbnail
-    x0, y0, x1, y1 = vals[0] * fx, vals[1] * fy, vals[2] * fx, vals[3] * fy
+
+    def sc(v, page, f):
+        # One box can mix scales (Omni on quadrants: x in pixels, y as 0.0836).
+        # A value under 1 with a fractional part is a fraction of the page
+        # whatever the rest of the box says; 0 and 1 stay on the box's scale.
+        if mx > 1.001 and v < 1.0 and v != int(v):
+            return v * page
+        return v * f
+    x0, y0, x1, y1 = sc(vals[0], W, fx), sc(vals[1], H, fy), sc(vals[2], W, fx), sc(vals[3], H, fy)
     x0, x1 = sorted((max(0, min(W, x0)), max(0, min(W, x1))))
     y0, y1 = sorted((max(0, min(H, y0)), max(0, min(H, y1))))
     return x0, y0, x1, y1
