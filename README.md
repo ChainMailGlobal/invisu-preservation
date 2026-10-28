@@ -26,10 +26,10 @@ environment variables, writes one ledger line per call (tokens, latency,
 dollars, provider) to `docs/cost_ledger.jsonl`, enforces a hard spend cap and
 stops on HTTP 402.
 
-| Seat | Designed for (Token Factory) | What ran the live demo (Nebius AI Cloud, one L40S) | Job |
+| Seat | Designed for (Token Factory) | What ran | Job |
 |---|---|---|---|
 | Eyes | `nvidia/Nemotron-3.5-Super-VL` | `nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8` | reads each scanned sheet: title, description, every legible piece of hand lettering with a box |
-| Brain | `nvidia/Nemotron-3-Ultra-550b-a55b` | the same Omni endpoint, reasoning mode on | answers a question over the evidence pack built from the index, with page receipts, in one of four allowed outcomes |
+| Brain | `nvidia/Nemotron-3-Ultra-550b-a55b` | **Ultra on Token Factory** in the submitted video (credits landed the same day); the Omni endpoint, reasoning on, before that | answers a question over the evidence pack built from the index, with page receipts, in one of four allowed outcomes |
 
 Why two columns: on build night Token Factory answered `402
 credit_balance_exhausted`, so the set was read on a **Nebius AI Cloud
@@ -38,6 +38,9 @@ Serverless AI endpoint** we created in the console — the stock
 preemptible NVIDIA L40S (48 GB, $0.77/hour on the console estimate). NVIDIA's
 model card names a single L40S as that build's minimum GPU. Same client, same
 JSON contract, same ledger: `docs/RUN_AI_CLOUD_ENDPOINT.md` is the recipe.
+Credits arrived later that day; Nemotron-3-Ultra on Token Factory then took the
+brain seat with the index unchanged, which is the tiering the track describes:
+Nano for the everyday reads on a per-second GPU, Ultra for the reasoning.
 There is no other inference provider and no training in this project.
 
 ## Demo set: Iolani Palace, Honolulu (HABS No. HI-1, loc.gov record hi0047)
@@ -222,11 +225,24 @@ Done and verified, from the committed ledger and index:
 - endpoint time: about 124 minutes of one preemptible L40S, about $1.59
   on the console rate; 253 model calls, 1,857,971 tokens
 
-Not done: Token Factory still answers **HTTP 402 `credit_balance_exhausted`**
-(the Nebius AI Studio key as well), so Nemotron-3.5-Super-VL and
-Nemotron-3-Ultra — the models this repo was written for — have not been
-exercised. The moment credits exist, the same four questions run on Ultra with
-`INFERENCE_PROVIDER=token-factory`; the transcripts say which model answered.
+Token Factory, once the hackathon credits landed later the same day:
+
+- **Nemotron-3-Ultra** answered the same four questions
+  (`docs/transcripts/token_factory/`): median 4.7 s per ~30k-token question,
+  reasoning returned separately, every receipt verified. The Richards Street
+  answer names both sheets and why, the sheet-12 answer quotes both links, the
+  refusal lists what it checked. This is the brain in the submitted video.
+- **Nemotron-3.5-Super-VL** read the same 23 sheets into
+  `data/iolani-palace-supervl/` (reasoning on, which read better than off).
+  `python tools/compare_readers.py data/iolani-palace data/iolani-palace-supervl`
+  prints the two columns: Omni on one L40S, 1,818 entries, 22/23 self-numbers,
+  47 reference letterings, median 13.3 s per sheet, every call finished;
+  Super-VL on Token Factory, 1,779 entries, 19/23, 37, median 19.5 s, 28 of 117
+  calls at the token ceiling while reasoning; titles agree on 18 of 23. On this
+  set, at these settings. It is a measurement, not a ranking.
+- Ledger: 19 Ultra calls (565k in / 15k out) and 117 Super-VL calls (196k in /
+  548k out). Token Factory publishes no machine-readable price, so those rows
+  carry `usd: null`; the console is the receipt.
 
 ## Limitations and failure cases
 

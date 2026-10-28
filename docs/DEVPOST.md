@@ -73,9 +73,15 @@ Nemotron-3-Ultra as the brain). On build night Token Factory answered
 `402 credit_balance_exhausted`, so the live run you see in the video and in
 `docs/transcripts/` was served by us on **Nebius AI Cloud Serverless AI**: one
 endpoint, one **NVIDIA L40S (48 GB)**, the stock `vllm/vllm-openai:v0.20.0`
-image, and **`nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8`** in both
-seats. NVIDIA's model card names a single L40S as that build's minimum GPU. It
-is.
+image, and **`nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8`**. NVIDIA's
+model card names a single L40S as that build's minimum GPU. It is. Credits
+landed later the same day, and **`nvidia/Nemotron-3-Ultra-550b-a55b` on Token
+Factory** took the brain seat with the index unchanged: that is the submitted
+video. Nano for the everyday reads on a per-second GPU, Ultra for the serious
+reasoning, one client on both surfaces. Every step is a chained, unattended
+workflow: loc.gov download, ingest, full-sheet read, quadrant re-read, dedupe,
+typed cross-references, index, evidence pack, brain, code-side receipt
+verification, and a second call if the model skips its outcome line.
 
 - **Eyes.** Each scanned sheet (1-bit TIFF from loc.gov, rendered to PNG,
   1,400 px on the long side) goes to the model once with a STRICT-JSON prompt:
@@ -91,9 +97,9 @@ is.
   dropped is named) — and the model must answer in one of the four outcomes
   with `[PG-NN]` receipts. Reasoning mode is on; the endpoint has no reasoning
   parser, so the thinking arrives inline and the agent parses the last outcome
-  block. Nemotron-3-Ultra on Token Factory takes this seat unchanged the moment
-  credits exist; every transcript names the model and the surface that
-  answered.
+  block. On Token Factory, Ultra returns its reasoning separately and needs
+  none of that: median 4.7 s per ~30k-token question. Every transcript names
+  the model and the surface that answered; both sets are committed.
 - The index is SQLite: `sheets`, `texts` (vector words from the PDFs, model
   transcriptions from the scans, photo captions), `findings` (typed "SEE SHEET
   N" references mapped through each sheet's own "SHEET N OF 22" lettering) and
@@ -150,6 +156,13 @@ models, for about $1.59 of GPU time of inference (253 calls, 1,857,971 tokens �
 from the committed ledger). And a reader that says "not in the set" when the set
 does not say.
 
+And a measurement the credits allowed: the same 23 sheets read by
+Nemotron-3.5-Super-VL on Token Factory, scored on the same metric
+(`tools/compare_readers.py`): 1,779 entries, 19 of 23 self-numbers, 37 reference
+letterings, 28 of 117 calls at the token ceiling while reasoning, against the
+30B Omni's 1,818, 22 and 47 on one L40S with every call finished. At these
+settings, on this set. Not a ranking.
+
 ## What we learned
 
 A 30B model on one GPU reads hand lettering well enough to index a set, and it answers well enough only when the evidence is clean and the question's own pages are resolved for it: duplicated lettering made it loop, a stray note made it answer the reverse direction, and both were fixed in the evidence pack, not in the model. Every failure we found came from reading the model's output; none showed in the logs. The four-outcome contract held on every final run, including the refusal, once a missing outcome line could be asked for in a second call.
@@ -181,10 +194,11 @@ cannot do.
   verifies.
 - Photo captions come from the August read on Token Factory (Nemotron-3-Nano-
   Omni, since removed from that catalog); they were not re-read.
-- The live run's brain is a 30B-A3B model on one L40S, not Nemotron-3-Ultra.
-  It answered with verified receipts, but on "where is the throne room" it
-  cited the interior sheets and missed the floor plan that places the room. A
-  larger brain is the design, not a claim.
+- Two brains are on record. The 30B Omni on one L40S answered with verified
+  receipts but, on "where is the throne room", cited the interior sheets and
+  missed the floor plan; Ultra on Token Factory cited the floor plan with its
+  lettering. The reader comparison is one set at one resolution and two
+  settings; it says what was measured, not which model is better.
 - On "what does HABS sheet 12 reference" the brain answered the reverse direction (what
   references sheet 12, from a note on sheet 20) until the evidence pack named the direction
   of each link; every run through the app then read it correctly, and one command-line run
@@ -221,7 +235,12 @@ machine-readable from the API or an unauthenticated page; a `pricing` field on
 `/v1/models` would let ledgers compute dollars without a human copying numbers.
 (4) What worked: the OpenAI-compatible surface meant the whole project is
 `urllib` and JSON; no SDK, and the same client moved to AI Cloud by changing
-four environment variables.
+four environment variables. Once funded, Token Factory was fast: Ultra answered
+~30k-token questions in a median 4.7 s with reasoning returned separately, and
+Super-VL read a 1,400-px sheet in a median 19.5 s with reasoning on. The first
+key we tried belonged to a different organization than the one the promo landed
+in; the API said only `credit_balance_exhausted`, which cost ten minutes of
+probing. A 402 that names the organization would have saved them.
 
 **Nebius AI Cloud Serverless AI** (the surface that actually ran the entry).
 (5) It worked, from a browser, with no Nebius CLI (there is no Windows build;
@@ -246,7 +265,12 @@ sheet title and 21 of 23 self-numbers at 1,400 px. Three behaviours needed
 code: a repetition loop at temperature 0 (fixed by `repetition_penalty 1.05`),
 a bare JSON array instead of the requested object on the quadrant prompt, and
 boxes that mix pixel and fraction scales. The model card's "minimum GPU (FP8):
-1× L40S 48GB" held at a 65,536-token context. (2) Adherence to the four-outcome
+1× L40S 48GB" held at a 65,536-token context. (1b) Nemotron-3.5-Super-VL on Token Factory honors `enable_thinking`;
+with reasoning on it read titles and self-numbers correctly, with it off it
+misread 21 as 2 and 11 as II. Reasoning consumed the ceiling: 28 of 117 calls
+finished on `length` at 8,000 (6,000 per quadrant). It groups lettering into
+fewer, longer entries, and on this set at 1,400 px it read fewer self-numbers
+and reference letterings than the 30B Omni did. (2) Adherence to the four-outcome
 contract with reasoning on: no run cited a page id that is not in the index; NOT_IN_THE_SET fired cleanly on the balustrade question with the three pages it checked; inline reasoning ran 3,000–16,000 characters per question; one final run omitted the OUTCOME line and stated it in a second short call, which the transcript notes. Without a reasoning
 parser the thinking arrives inline before the answer; parsing from the last
 outcome block made it usable, and a 900-token ceiling was not enough once
