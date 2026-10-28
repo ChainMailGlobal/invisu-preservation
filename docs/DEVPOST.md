@@ -1,7 +1,7 @@
 # Devpost submission text — paste-ready
 
-Fill every `{{placeholder}}` from the real read (README Status, `docs/transcripts/`,
-`docs/cost_ledger.jsonl`) before pasting. Nothing in braces may be guessed.
+Every number here comes from the real read (README Status, `docs/transcripts/`,
+`docs/cost_ledger.jsonl`); nothing was guessed. Final as of 2026-10-28.
 
 ---
 
