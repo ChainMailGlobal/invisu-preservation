@@ -104,8 +104,10 @@ def evidence_pack(conn: sqlite3.Connection, question: str, sheet_id: str | None 
             back = [f"{s_}: '{t}'" for s_, t, tgt in refs if tgt == sid]
             lines.append(f"  {sid} · {kind}" + (f" · HABS sheet {habs}" if habs else "")
                          + (f" · {title}" if title else ""))
-            lines.append("    typed references ON this page: " + ("; ".join(on) if on else "none read"))
-            lines.append("    pages that reference it: " + ("; ".join(back) if back else "none"))
+            lines.append("    WHAT THIS PAGE REFERENCES (its own 'SEE SHEET' lettering, outgoing): "
+                         + ("; ".join(on) if on else "none read"))
+            lines.append("    what references THIS page (other pages' lettering, incoming): "
+                         + ("; ".join(back) if back else "none"))
 
     lines += ["", "TEXT SEARCH for the question's terms:"]
     combined: dict[str, int] = {}

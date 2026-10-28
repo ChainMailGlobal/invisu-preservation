@@ -1,5 +1,7 @@
 # Demo video script — under 2:30, screen recording with voice
 
+> The submitted video was produced by `tools/make_video.py` from the real local app; its narration and click path are `docs/video/timeline.json` (source of truth). The table below is the human-readable plan for a re-recording with a live voice.
+
 **Setup before recording.** The Nebius AI Cloud endpoint must be `Running` and serving
 (recreate it from `docs/RUN_AI_CLOUD_ENDPOINT.md` if it was deleted: ~30 minutes from
 Create to serving). Export the five variables from that runbook's section 2 in the
