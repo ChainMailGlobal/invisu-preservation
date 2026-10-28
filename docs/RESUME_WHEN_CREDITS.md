@@ -130,3 +130,7 @@ placeholders. Commit, push.
 - a sheet read that returns the same text as another sheet, or an empty
   `texts` list on a sheet that clearly has lettering → stop and report before
   spending on the rest
+
+## 2026-10-28 addendum: AI Cloud route
+
+Token Factory credits never arrived; the AI Cloud balance can serve a Nemotron ourselves on one L40S. Full recipe: docs/RUN_AI_CLOUD_ENDPOINT.md. The steps above are unchanged except the environment block at its section 2; Ultra on Token Factory stays the brain of record if credits land before the deadline.

@@ -10,6 +10,16 @@ Every model call in this repo goes through `chat()`:
 Models used by this project (ids as listed by GET /v1/models on 2026-10-27):
   EYES  = nvidia/Nemotron-3.5-Super-VL        reads the scanned sheets
   BRAIN = nvidia/Nemotron-3-Ultra-550b-a55b   answers questions over the index
+
+The same client talks to a self-served Nemotron on a Nebius AI Cloud Serverless
+endpoint (vLLM, OpenAI-compatible) — see docs/RUN_AI_CLOUD_ENDPOINT.md. Nothing
+changes but the environment:
+  TOKEN_FACTORY_BASE_URL   endpoint URL + /v1
+  INFERENCE_API_KEY        the endpoint's bearer token (TOKEN_FACTORY_API_KEY also works)
+  INFERENCE_PROVIDER       tag written on every ledger row (default: token-factory)
+  EYES_MODEL / BRAIN_MODEL model ids served there
+GPU time is billed per second, not per token, so it is recorded as a
+`gpu_session` ledger row (`python -m preservation.tokenfactory --gpu-session …`).
 """
 from __future__ import annotations
 
@@ -22,8 +32,9 @@ from pathlib import Path
 
 BASE_URL = os.environ.get("TOKEN_FACTORY_BASE_URL",
                           "https://api.tokenfactory.nebius.com/v1").rstrip("/")
-EYES = "nvidia/Nemotron-3.5-Super-VL"
-BRAIN = "nvidia/Nemotron-3-Ultra-550b-a55b"
+PROVIDER = os.environ.get("INFERENCE_PROVIDER", "token-factory")
+EYES = os.environ.get("EYES_MODEL", "nvidia/Nemotron-3.5-Super-VL")
+BRAIN = os.environ.get("BRAIN_MODEL", "nvidia/Nemotron-3-Ultra-550b-a55b")
 
 ROOT = Path(__file__).resolve().parent.parent
 LEDGER = Path(os.environ.get("TF_LEDGER", ROOT / "docs" / "cost_ledger.jsonl"))
@@ -59,7 +70,8 @@ def has_key() -> bool:
 
 
 def api_key() -> str:
-    key = os.environ.get("TOKEN_FACTORY_API_KEY", "").strip()
+    key = (os.environ.get("INFERENCE_API_KEY", "").strip()
+           or os.environ.get("TOKEN_FACTORY_API_KEY", "").strip())
     if not key:
         env = ROOT / ".env"
         if env.exists():
@@ -101,6 +113,16 @@ def spent() -> dict:
     out: dict = {"total": {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0,
                            "usd": 0.0, "unpriced_calls": 0}}
     for r in ledger_rows():
+        if r.get("kind") == "gpu_session":
+            # GPU time (AI Cloud endpoint): dollars from seconds, no tokens.
+            k = f"gpu-session:{r.get('provider', '?')}"
+            d = out.setdefault(k, {"calls": 0, "prompt_tokens": 0,
+                                   "completion_tokens": 0, "usd": 0.0,
+                                   "unpriced_calls": 0, "minutes": 0.0})
+            d["minutes"] += float(r.get("minutes", 0))
+            d["usd"] += float(r.get("usd", 0))
+            out["total"]["usd"] += float(r.get("usd", 0))
+            continue
         for k in (r.get("model", "?"), "total"):
             d = out.setdefault(k, {"calls": 0, "prompt_tokens": 0,
                                    "completion_tokens": 0, "usd": 0.0,
@@ -170,7 +192,7 @@ def chat(model: str, messages: list, *, max_tokens: int = 1500,
             "latency_s": round(latency, 1),
         }
         _record({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "model": model,
-                 "purpose": purpose,
+                 "provider": PROVIDER, "purpose": purpose,
                  "prompt_tokens": usage.get("prompt_tokens", 0),
                  "completion_tokens": usage.get("completion_tokens", 0),
                  "total_tokens": usage.get("total_tokens", 0),
@@ -189,6 +211,9 @@ def cost_line() -> str:
     for model, d in s.items():
         if model == "total":
             continue
+        if model.startswith("gpu-session:"):
+            parts.append(f"{model}: {d['minutes']:.0f} min of GPU time, ${d['usd']:.2f}")
+            continue
         usd = f"${d['usd']:.4f}" if not d["unpriced_calls"] else \
             f"${d['usd']:.4f} (+{d['unpriced_calls']} unpriced)"
         parts.append(f"{model}: {d['calls']} calls, {d['prompt_tokens']:,} in / "
@@ -200,5 +225,30 @@ def cost_line() -> str:
     return "\n".join(parts)
 
 
+def record_gpu_session(provider: str, rate_usd_per_hour: float, minutes: float,
+                       note: str = "") -> dict:
+    """Append one gpu_session row: an AI Cloud endpoint's lifetime, priced
+    per second from the published hourly rate. Lifetime, not call time —
+    the GPU bills from creation to deletion."""
+    row = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "kind": "gpu_session",
+           "provider": provider, "rate_usd_per_hour": rate_usd_per_hour,
+           "minutes": round(minutes, 1),
+           "usd": round(rate_usd_per_hour * minutes / 60, 4), "note": note}
+    _record(row)
+    return row
+
+
 if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser(description="cost line, or record GPU time")
+    ap.add_argument("--gpu-session", metavar="PROVIDER",
+                    help="record an endpoint lifetime, e.g. ai-cloud-l40s")
+    ap.add_argument("--rate", type=float, help="USD per GPU-hour, e.g. 1.55")
+    ap.add_argument("--minutes", type=float, help="endpoint lifetime in minutes")
+    ap.add_argument("--note", default="")
+    a = ap.parse_args()
+    if a.gpu_session:
+        if a.rate is None or a.minutes is None:
+            ap.error("--gpu-session needs --rate and --minutes")
+        print(json.dumps(record_gpu_session(a.gpu_session, a.rate, a.minutes, a.note)))
     print(cost_line())
