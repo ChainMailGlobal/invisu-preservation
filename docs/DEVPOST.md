@@ -7,7 +7,7 @@ Fill every `{{placeholder}}` from the real read (README Status, `docs/transcript
 
 ## Title
 
-INViSU Preservation Reader
+iNViSU Preservation Reader
 
 ## Tagline
 
@@ -136,7 +136,7 @@ and where it needed the code-side check.}}
 The same three steps — ingest, read, index — work on any HABS/HAER/HALS record.
 Next is a batch runner over loc.gov record ids, so a preservation office can
 point at its county and get every set answerable; then the verified-outcome
-layer we run in our product (INViSU Spatial Memory, verified by MAG) on top,
+layer we run in our product (iNViSU Spatial Memory, verified by MAG) on top,
 so answers that a human confirmed are remembered across sets. The eyes stay
 open models on Token Factory; the sets stay public domain.
 

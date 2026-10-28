@@ -1,4 +1,4 @@
-# INViSU Preservation Reader
+# iNViSU Preservation Reader
 
 **Ask a Library of Congress drawing set a question. Get the sheet.**
 
@@ -10,7 +10,7 @@ photographs and typed reports. None of them can be asked a question. This
 reader makes one of them answerable, with every answer carrying the sheet it
 came from, and it refuses to answer when the set does not contain the answer.
 
-Built by [INViSU AI](https://github.com/ChainMailGlobal) for the
+Built by [iNViSU AI](https://github.com/ChainMailGlobal) for the
 **Nebius x NVIDIA Global AI Hackathon**, track **Best Apps and Agents**.
 
 ## Nebius + NVIDIA usage
@@ -214,9 +214,9 @@ at the output, `read_scans`, `build_index`, then the four agent questions with
   documentation is in the public domain. Files are fetched from loc.gov; the
   pages in `data/iolani-palace/` are reproduced only for this demo set and
   nothing else is redistributed.
-- Lineage: the page index and cross-reference check descend from INViSU's public
+- Lineage: the page index and cross-reference check descend from iNViSU's public
   [PlanGraph](https://github.com/ChainMailGlobal/plangraph) repository (MIT).
-- Not in this repository: INViSU's Spatial Memory learning layer (verified by
+- Not in this repository: iNViSU's Spatial Memory learning layer (verified by
   MAG), its fine-tuned perception adapters, and its measurement tools. This
   repo is the open method on open models.
 - Code: MIT, see `LICENSE`.

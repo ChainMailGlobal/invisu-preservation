@@ -38,7 +38,7 @@ SITE_LIMIT = 150_000_000
 FILE_LIMIT = 10_000_000
 
 SPACE_README = """---
-title: INViSU Preservation Reader
+title: iNViSU Preservation Reader
 emoji: 🏛️
 colorFrom: gray
 colorTo: indigo
@@ -48,7 +48,7 @@ license: mit
 short_description: Ask a Library of Congress drawing set. Get the sheet.
 ---
 
-# INViSU Preservation Reader — static demo
+# iNViSU Preservation Reader — static demo
 
 The Iolani Palace set (Library of Congress HABS No. HI-1, loc.gov record
 hi0047): 85 pages, every page's text, typed cross-references, search in the
