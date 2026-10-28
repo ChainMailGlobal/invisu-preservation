@@ -165,7 +165,7 @@ cannot do.
 
 ## What's next
 
-The same three steps, ingest, read, index, work on any HABS/HAER/HALS record; a batch runner over loc.gov record IDs lets a preservation office point at its county and get every set answerable. The eyes get trained: Nemotron-Nano-V2-12B VL is fine-tunable on Token Factory, and we have a 228,000-box self-labeled corpus of drawing text with exact positions built for exactly that, because transcription without real localization is the gap every general vision model still has. Then the verified-outcome layer from our product, INViSU Spatial Memory verified by MAG, so answers a human confirmed are remembered across sets. Vector drawings already need no model at all; the model is for scans and reasoning, which is what makes a small, measured Seer on an ordinary laptop the end of this road.
+The same three steps, ingest, read, index, work on any HABS/HAER/HALS record; a batch runner over loc.gov record IDs lets a preservation office point at its county and get every set answerable. The eyes get trained: Nemotron-Nano-V2-12B VL is fine-tunable on Token Factory, and we have a 228,000-box self-labeled corpus of drawing text with exact positions built for exactly that, because transcription without real localization is the gap every general vision model still has. Then the verified-outcome layer from our product, iNViSU Spatial Memory verified by MAG, so answers a human confirmed are remembered across sets. Vector drawings already need no model at all; the model is for scans and reasoning, which is what makes a small, measured Seer on an ordinary laptop the end of this road.
 
 ## Feedback for Nebius and NVIDIA
 
