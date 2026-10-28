@@ -22,7 +22,7 @@ Best Apps and Agents
 - Repo (MIT): https://github.com/ChainMailGlobal/invisu-preservation
 - Demo (static: browse, search, deep links — no model call): https://cre808ive-invisu-preservation.static.hf.space/
 - The model-backed app runs locally from the repo (README → Run); the live answers are in the video and in `docs/transcripts/`
-- Video: {{YOUTUBE_URL}}
+- Video: https://youtu.be/5bC4mlp3wfE
 
 ## Inspiration
 
