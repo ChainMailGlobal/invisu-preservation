@@ -1,3 +1,15 @@
+---
+title: INViSU Preservation Reader
+emoji: 🏛️
+colorFrom: gray
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+short_description: Ask a Library of Congress drawing set. Get the sheet.
+---
+
 # INViSU Preservation Reader
 
 **Ask a Library of Congress drawing set a question. Get the sheet.**
@@ -130,6 +142,36 @@ Any other HABS/HAER/HALS record works the same way: download its drawings
 (TIFF), photographs (JPEG) and PDFs from loc.gov into a folder and run the
 three steps against a new `data/<record>` directory.
 
+## Web app
+
+One FastAPI service and one static page: the 85 pages on the left as
+thumbnails with ids and titles, the selected page in the middle with the cited
+lettering boxed, and on the right the question, the outcome label, the answer
+and clickable receipts that jump to the cited page.
+
+```bash
+uvicorn app.server:app --reload --port 7860      # http://localhost:7860
+```
+
+It runs from the committed `index.db` and PNGs. When the model cannot be
+called (no key, Token Factory 402, spend cap) the answer panel shows
+`MODEL UNAVAILABLE` with the reason and the index hits still work — the page
+never crashes on a missing model. `AGENT_DISABLED=1` keeps it index-only on
+purpose.
+
+### Hugging Face Space
+
+The repo is a Docker Space as-is (`Dockerfile`, port 7860, the front matter at
+the top of this file). After `hf auth login`:
+
+```bash
+HF_SPACE=<user-or-org>/invisu-preservation ./deploy_space.sh
+```
+
+The script creates the Space, uploads the tree without `.git`/`.env`, sets
+`TOKEN_FACTORY_API_KEY` as a Space secret (from your env or `.env`) and prints
+the URL. Demo: {{SPACE_URL}} (added at deploy).
+
 ## Cost
 
 `docs/cost_ledger.jsonl` holds one line per model call. Token counts come from
@@ -149,10 +191,15 @@ Done and verified locally:
   evidence pack (`--dry-run`)
 - the Token Factory client, ledger and cap; both model ids confirmed present
   on `GET /v1/models`
+- web app (FastAPI + one page) tested against the committed index with the
+  model unavailable; thumbnails and 2400 px view renditions committed;
+  `Dockerfile` and `deploy_space.sh` for a Hugging Face Docker Space (not
+  deployed yet — needs the Space token and credits)
 
 Blocked — the Token Factory account answered **HTTP 402
 `credit_balance_exhausted`** on the first chat call (the smallest model fails
-the same way, so it is the account, not the model). Until credits are added:
+the same way, so it is the account, not the model; the Nebius AI Studio key
+answers 402 as well). Until credits are added:
 
 - the 23 scanned sheets have **no transcription yet** (the `texts` table has
   zero `eyes` rows); searches over the drawings return only photo captions and
