@@ -292,6 +292,12 @@ def tile_pass(png: str, s: dict, *, thinking: str, pg: str,
                 spans.append(sp)
                 added += 1
             print(f"[{pg}] tile q{r}{c}: {fmt_cost(reply)}", flush=True)
+    # a quadrant re-reads lettering the full sheet already had, at a slightly
+    # different box: collapse same-text spans with near-identical centres
+    from .archive import dedupe_spans
+    before = len(spans)
+    spans = dedupe_spans(spans, W, H)
+    added -= before - len(spans)
     s["spans"] = spans
     return added
 

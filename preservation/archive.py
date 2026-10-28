@@ -66,6 +66,29 @@ def _first_line(spans, H):
     return " ".join(str(sp[0]) for sp in words)[:120] or None
 
 
+def dedupe_spans(spans, W, H, tol: float = 0.025):
+    """The same lettering read twice (a full-sheet pass, then a quadrant pass)
+    lands as two spans with the same text and nearly the same position; the
+    evidence pack then repeats it and a small brain loops on the repetition.
+    Keep the first; a duplicate is the same text (case-insensitive, whitespace
+    collapsed) whose centre lies within `tol` of the page diagonal of a kept one."""
+    import math
+    diag = math.hypot(W or 1, H or 1) or 1.0
+    kept, seen = [], {}
+    for sp in spans:
+        try:
+            t = " ".join(str(sp[0]).split()).upper()
+            cx, cy = (float(sp[1]) + float(sp[3])) / 2, (float(sp[2]) + float(sp[4])) / 2
+        except Exception:
+            kept.append(sp)
+            continue
+        if any(math.hypot(cx - x, cy - y) < tol * diag for x, y in seen.get(t, ())):
+            continue
+        seen.setdefault(t, []).append((cx, cy))
+        kept.append(sp)
+    return kept
+
+
 def ingest_page(conn, pdir: Path, pg: int, photos: dict | None = None,
                 source="index"):
     """Index one page: its text layer, title, photo caption, typed references."""
@@ -82,6 +105,8 @@ def ingest_page(conn, pdir: Path, pg: int, photos: dict | None = None,
     sid = page_id(pg)
     kind = s.get("kind") or "sheet"
     spans = s.get("spans") or []
+    if kind == "sheet":   # model-read lettering; PDF text layers are left as they are
+        spans = dedupe_spans(spans, sw, sh)
 
     conn.execute("DELETE FROM texts WHERE sheet_no=?", (sid,))
     conn.execute("DELETE FROM findings WHERE sheet_no=?", (sid,))

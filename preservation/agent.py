@@ -76,6 +76,8 @@ def evidence_pack(conn: sqlite3.Connection, question: str, sheet_id: str | None 
         lines.append(f"  {sid} · {kind} · {habs_s} · {title or '(no title read)'}")
     refs = conn.execute("SELECT sheet_no, text, points_to FROM findings WHERE kind='ref' "
                         "ORDER BY sheet_no").fetchall()
+    # the same lettering read twice (full sheet, then a quadrant) is one reference
+    refs = list(dict.fromkeys((sid, " ".join(str(t).split()), tgt) for sid, t, tgt in refs))
     lines += ["", f"TYPED REFERENCES from 'SEE SHEET N' lettering ({len(refs)}):"]
     for sid, text, target in refs:
         lines.append(f"  {sid}: '{text}' -> {target or 'no page identifies itself with that number'}")
@@ -146,8 +148,19 @@ def parse_reply(text: str, known_pages: set[str]) -> dict:
     m = re.search(r"OUTCOME:\s*([A-Z_]+)", body)
     if m and m.group(1) in OUTCOMES:
         outcome = m.group(1)
+    elif k < 0:
+        # No form at all: accept a bare outcome word as the first token (the
+        # 30B brain with reasoning off sometimes answers just "NOT_IN_THE_SET").
+        bare = re.match(r"\s*(ANSWERED_FROM_MEMORY|ANSWERED|NOT_IN_THE_SET|UNKNOWN_ENTITY)\b", body)
+        if bare:
+            outcome = bare.group(1)
     am = re.search(r"ANSWER:\s*(.*?)(?:\nRECEIPTS:|\Z)", body, re.S)
-    answer = am.group(1).strip() if am else body.strip()
+    if am:
+        answer = am.group(1).strip()
+    else:
+        # strip a bare outcome word and a receipts line from what is left
+        answer = re.sub(r"^\s*(ANSWERED_FROM_MEMORY|ANSWERED|NOT_IN_THE_SET|UNKNOWN_ENTITY)\b[:\s]*", "", body, count=1)
+        answer = re.sub(r"RECEIPTS:.*", "", answer, flags=re.S).strip()
     rm = re.search(r"RECEIPTS:\s*(.*)", body, re.S)
     cited = sorted({f"PG-{n}" for n in PAGE_RE.findall((rm.group(1) if rm else "") + " " + answer)})
     invented = [p for p in cited if p not in known_pages]
@@ -169,7 +182,8 @@ def parse_reply(text: str, known_pages: set[str]) -> dict:
 
 
 def ask(pdir, question: str, sheet_id: str | None = None, *, thinking="auto",
-        budget=150_000, dry_run=False, db_path=None, max_tokens: int = 900) -> dict:
+        budget=150_000, dry_run=False, db_path=None, max_tokens: int = 900,
+        rep_penalty: float | None = None) -> dict:
     pdir = Path(pdir)
     db_path = Path(db_path) if db_path else pdir / "index.db"
     if not db_path.exists():
@@ -189,11 +203,17 @@ def ask(pdir, question: str, sheet_id: str | None = None, *, thinking="auto",
     if dry_run:
         result["pack"] = pack
         return result
-    extra = None
+    extra = {}
     if thinking == "off":
-        extra = {"chat_template_kwargs": {"enable_thinking": False}}
+        extra["chat_template_kwargs"] = {"enable_thinking": False}
     elif thinking == "on":
-        extra = {"chat_template_kwargs": {"enable_thinking": True}}
+        extra["chat_template_kwargs"] = {"enable_thinking": True}
+    if rep_penalty:
+        # the 30B brain looped inside its own reasoning ("Also PG-14: ..." x300)
+        # without this; 1.05 is mild enough to leave quoting intact
+        extra["repetition_penalty"] = rep_penalty
+    extra = extra or None
+    result["rep_penalty"] = rep_penalty
     messages = [{"role": "system", "content": SYSTEM},
                 {"role": "user", "content": f"=== EVIDENCE PACK ===\n{pack}\n\n"
                                             f"=== QUESTION ===\n{question}"}]
@@ -244,10 +264,13 @@ def main():
     ap.add_argument("--max-tokens", type=int, default=900,
                     help="raise (e.g. 4000) when reasoning mode is on and the "
                          "server has no reasoning parser: the thinking is inline")
+    ap.add_argument("--rep-penalty", type=float, default=None,
+                    help="vLLM repetition_penalty for the brain, e.g. 1.05")
     a = ap.parse_args()
     try:
         r = ask(a.project_dir, a.question, a.sheet, thinking=a.thinking,
-                budget=a.budget, dry_run=a.dry_run, max_tokens=a.max_tokens)
+                budget=a.budget, dry_run=a.dry_run, max_tokens=a.max_tokens,
+                rep_penalty=a.rep_penalty)
     except (tf.CreditsExhausted, tf.SpendCapReached, tf.NoApiKey) as e:
         print(f"STOP: {e}")
         sys.exit(2)

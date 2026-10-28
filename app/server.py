@@ -107,7 +107,7 @@ def health():
         conn = db()
         n = conn.execute("SELECT COUNT(*) FROM sheets").fetchone()[0]
         conn.close()
-    return dict(ok=ok, index=str(DB), pages=n, model=tf.BRAIN, eyes=tf.EYES,
+    return dict(ok=ok, index=str(DB), pages=n, model=tf.BRAIN, eyes=tf.EYES, provider=tf.PROVIDER,
                 model_callable=model_disabled_reason() is None,
                 model_note=model_disabled_reason())
 
@@ -122,7 +122,7 @@ def get_set():
     finally:
         conn.close()
     return dict(name=project_name(), summary=s, pages=pages, issues=issues,
-                model=tf.BRAIN, eyes=tf.EYES, model_note=model_disabled_reason())
+                model=tf.BRAIN, eyes=tf.EYES, provider=tf.PROVIDER, model_note=model_disabled_reason())
 
 
 def page_payload(conn, sid: str) -> dict | None:
@@ -195,11 +195,13 @@ async def ask(req: AskReq):
     # Reasoning mode without a server-side reasoning parser puts the thinking
     # inline, so the ceiling must hold it: AGENT_MAX_TOKENS=4000 with thinking on.
     max_tokens = int(os.environ.get("AGENT_MAX_TOKENS", "900"))
+    rep = float(os.environ["AGENT_REP_PENALTY"]) if os.environ.get("AGENT_REP_PENALTY") else None
     try:
         r = await asyncio.wait_for(
             loop.run_in_executor(None, lambda: agent.ask(PROJECT, q, req.sheet_id,
                                                          thinking=thinking,
-                                                         max_tokens=max_tokens)),
+                                                         max_tokens=max_tokens,
+                                                         rep_penalty=rep)),
             timeout=ASK_TIMEOUT_S)
     except tf.CreditsExhausted:
         reason = "model unavailable: credits (Token Factory answered HTTP 402)"

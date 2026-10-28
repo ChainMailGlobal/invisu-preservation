@@ -62,13 +62,23 @@ export INFERENCE_PROVIDER="ai-cloud-l40s"
 export EYES_MODEL="nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8"
 export BRAIN_MODEL="$EYES_MODEL"
 curl -s -H "Authorization: Bearer $INFERENCE_API_KEY" "$TOKEN_FACTORY_BASE_URL/models"   # smoke
-python -m preservation.read_scans data/iolani-palace --only 11 --thinking off      # inspect by eye
-python -m preservation.read_scans data/iolani-palace --kind sheet --thinking off   # all 23
+# Settings that worked on 2026-10-28 (see the commit log for why each exists):
+#   eyes: --thinking off --rep-penalty 1.05 --max-tokens 6000   (no penalty = repetition loop)
+#   brain: --thinking on --max-tokens 4000                       (reasoning is inline; the agent parses the last OUTCOME block)
+python -m preservation.read_scans data/iolani-palace --only 11 --thinking off --rep-penalty 1.05 --max-tokens 6000   # inspect by eye
+python -m preservation.read_scans data/iolani-palace --kind sheet --thinking off --rep-penalty 1.05 --max-tokens 6000 # all 23, ~25 s each
+python -m preservation.read_scans data/iolani-palace --kind sheet --tiles --thinking off --rep-penalty 1.05           # quadrant pass, 92 calls, ~15 min
 python -m preservation.build_index data/iolani-palace
-python -m preservation.agent data/iolani-palace "where is the throne room" --thinking off --save docs/transcripts/throne_room.md
+python -m preservation.agent data/iolani-palace "where is the throne room" --thinking on --max-tokens 4000 --save docs/transcripts/throne_room.md
 # … the other three questions, incl. the one that must say NOT IN THE SET
-python -m preservation.tokenfactory --gpu-session ai-cloud-l40s --rate 1.55 --minutes <endpoint lifetime>
+python -m preservation.tokenfactory --gpu-session ai-cloud-l40s --rate 0.77 --minutes <endpoint lifetime>   # preemptible rate shown by the console
 ```
+
+Observed 2026-10-28 (L40S, preemptible, console estimate $0.77/h): endpoint Running
+after ~5 min, serving after ~27 min (35 GB download). Full-sheet read 7–24 s per
+sheet, 23/23 finished on `stop` with the penalty; quadrant call 3–10 s. Omni answers
+the quadrant prompt with a bare JSON array and mixes pixel and fraction scales in
+one box — both handled in `read_scans.py` now.
 
 ## 3. CEO: delete (1 minute)
 
