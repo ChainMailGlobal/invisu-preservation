@@ -13,7 +13,7 @@ came from, and it refuses to answer when the set does not contain the answer.
 Built by [iNViSU AI](https://github.com/ChainMailGlobal) for the
 **Nebius x NVIDIA Global AI Hackathon**, track **Best Apps and Agents**.
 
-**Demo video (2:57):** https://youtu.be/5bC4mlp3wfE — recorded from the running app by
+**Demo video (2:54):** https://youtu.be/3TxEhdhZjrA — recorded from the running app by
 `tools/make_video.py`; every answer on screen is a live call.
 **Static demo:** https://cre808ive-invisu-preservation.static.hf.space/
 
