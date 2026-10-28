@@ -34,5 +34,4 @@ fi
 hf auth whoami >/dev/null 2>&1 || { echo "not logged in: run 'hf auth login' first" >&2; exit 1; }
 
 echo "== create Space $SPACE (docker) if missing"
-hf repo create "$SPACE" --repo-type space --space-sdk docker 
-  || echo "   (create skipped - the Space already exists)"
+hf repo create "$SPACE" --repo-type space --space-sdk docker || echo "   (create skipped - the Space already exists)"
