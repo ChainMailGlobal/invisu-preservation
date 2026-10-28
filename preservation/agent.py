@@ -51,7 +51,7 @@ NOT_IN_THE_SET - the question is about this building or set, the pack does not c
 
 UNKNOWN_ENTITY - the question names a building, place, person, sheet or object that is not this set and does not appear in the pack.
 
-Never invent a page id, sheet number, dimension, area, date or room name. Never estimate an area or a quantity. If the pack is ambiguous, say what is ambiguous rather than choosing. Keep the answer under 150 words.
+Never invent a page id, sheet number, dimension, area, date or room name. Never estimate an area or a quantity. If the pack is ambiguous, say what is ambiguous rather than choosing. Answer the question itself, the way a reader of the set would use it: for a location question, name the sheet(s) and quote the lettering that places it (the plan sheet and the room label, not just the building); for a reference question, list the references verbatim; for a which-sheets question, list every matching sheet with its HABS sheet number. Keep the answer under 150 words.
 
 Reply in exactly this form, nothing else:
 OUTCOME: <one of ANSWERED | ANSWERED_FROM_MEMORY | NOT_IN_THE_SET | UNKNOWN_ENTITY>
@@ -133,13 +133,22 @@ def evidence_pack(conn: sqlite3.Connection, question: str, sheet_id: str | None 
 
 
 def parse_reply(text: str, known_pages: set[str]) -> dict:
+    # A reasoning model served without a reasoning parser puts its thinking
+    # inline, before the answer form. The form comes last: strip <think>
+    # blocks and parse from the LAST "OUTCOME:"; what precedes it is counted
+    # as inline reasoning, never shown as the answer.
+    body = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
+    k = body.rfind("OUTCOME:")
+    inline_reasoning = len(body[:k].strip()) if k > 0 else 0
+    if k >= 0:
+        body = body[k:]
     outcome = None
-    m = re.search(r"OUTCOME:\s*([A-Z_]+)", text)
+    m = re.search(r"OUTCOME:\s*([A-Z_]+)", body)
     if m and m.group(1) in OUTCOMES:
         outcome = m.group(1)
-    am = re.search(r"ANSWER:\s*(.*?)(?:\nRECEIPTS:|\Z)", text, re.S)
-    answer = am.group(1).strip() if am else text.strip()
-    rm = re.search(r"RECEIPTS:\s*(.*)", text, re.S)
+    am = re.search(r"ANSWER:\s*(.*?)(?:\nRECEIPTS:|\Z)", body, re.S)
+    answer = am.group(1).strip() if am else body.strip()
+    rm = re.search(r"RECEIPTS:\s*(.*)", body, re.S)
     cited = sorted({f"PG-{n}" for n in PAGE_RE.findall((rm.group(1) if rm else "") + " " + answer)})
     invented = [p for p in cited if p not in known_pages]
     verified = outcome is not None and not invented and \
@@ -155,11 +164,12 @@ def parse_reply(text: str, known_pages: set[str]) -> dict:
             outcome == "ANSWERED_FROM_MEMORY" and not re.search(r"\b(19|20)\d{2}\b", answer):
         notes.append("memory answer carries no date")
     return {"outcome": outcome, "answer": answer, "receipts": cited,
-            "invented": invented, "verified": verified, "notes": notes}
+            "invented": invented, "verified": verified, "notes": notes,
+            "inline_reasoning_chars": inline_reasoning}
 
 
 def ask(pdir, question: str, sheet_id: str | None = None, *, thinking="auto",
-        budget=150_000, dry_run=False, db_path=None) -> dict:
+        budget=150_000, dry_run=False, db_path=None, max_tokens: int = 900) -> dict:
     pdir = Path(pdir)
     db_path = Path(db_path) if db_path else pdir / "index.db"
     if not db_path.exists():
@@ -172,6 +182,7 @@ def ask(pdir, question: str, sheet_id: str | None = None, *, thinking="auto",
     pack, meta = evidence_pack(conn, question, sheet_id, budget, set_name)
     known = {r[0] for r in conn.execute("SELECT sheet_no FROM sheets")}
     result = {"question": question, "sheet_id": sheet_id, "model": tf.BRAIN,
+              "provider": tf.PROVIDER, "thinking": thinking, "max_tokens": max_tokens,
               "pack_chars": meta["chars"], "pages_included": meta["pages_included"],
               "pages_dropped": meta["pages_dropped"],
               "ts": time.strftime("%Y-%m-%d %H:%M:%S")}
@@ -186,7 +197,7 @@ def ask(pdir, question: str, sheet_id: str | None = None, *, thinking="auto",
     messages = [{"role": "system", "content": SYSTEM},
                 {"role": "user", "content": f"=== EVIDENCE PACK ===\n{pack}\n\n"
                                             f"=== QUESTION ===\n{question}"}]
-    reply, err = tf.chat(tf.BRAIN, messages, max_tokens=900, temperature=0,
+    reply, err = tf.chat(tf.BRAIN, messages, max_tokens=max_tokens, temperature=0,
                          extra=extra, purpose=f"agent: {question[:60]}", timeout=420)
     if err:
         result.update(error=err)
@@ -201,13 +212,17 @@ def ask(pdir, question: str, sheet_id: str | None = None, *, thinking="auto",
 def transcript_md(r: dict) -> str:
     usd = f"${r['usd']:.4f}" if r.get("usd") is not None else "price not configured"
     u = r.get("usage", {})
+    where = {"token-factory": "Nebius Token Factory"}.get(
+        r.get("provider", ""), f"a Nebius AI Cloud Serverless endpoint ({r.get('provider')})")
     lines = [f"# {r['question']}", "",
-             f"- Model: `{r['model']}` via Nebius Token Factory",
+             f"- Model: `{r['model']}` via {where}; reasoning mode: {r.get('thinking')}, "
+             f"max_tokens {r.get('max_tokens')}",
              f"- Time: {r['ts']}",
              f"- Evidence pack: {r['pack_chars']:,} chars, pages included: "
              f"{len(r['pages_included'])}, dropped: {len(r['pages_dropped'])}",
              f"- Tokens: {u.get('prompt_tokens', 0):,} in / {u.get('completion_tokens', 0):,} "
-             f"out ({usd}, {r.get('latency_s', '?')}s, reasoning chars: {r.get('reasoning_chars', 0)})",
+             f"out ({usd}, {r.get('latency_s', '?')}s, reasoning chars: {r.get('reasoning_chars', 0)}"
+             f" separate / {r.get('inline_reasoning_chars', 0)} inline)",
              f"- Outcome: **{r.get('outcome')}** — receipts verified against the index: "
              f"**{'yes' if r.get('verified') else 'NO'}**"
              + (f" ({'; '.join(r['notes'])})" if r.get("notes") else ""),
@@ -226,10 +241,13 @@ def main():
     ap.add_argument("--save", default=None, help="write a markdown transcript here")
     ap.add_argument("--thinking", choices=["auto", "off", "on"], default="auto")
     ap.add_argument("--budget", type=int, default=150_000)
+    ap.add_argument("--max-tokens", type=int, default=900,
+                    help="raise (e.g. 4000) when reasoning mode is on and the "
+                         "server has no reasoning parser: the thinking is inline")
     a = ap.parse_args()
     try:
         r = ask(a.project_dir, a.question, a.sheet, thinking=a.thinking,
-                budget=a.budget, dry_run=a.dry_run)
+                budget=a.budget, dry_run=a.dry_run, max_tokens=a.max_tokens)
     except (tf.CreditsExhausted, tf.SpendCapReached, tf.NoApiKey) as e:
         print(f"STOP: {e}")
         sys.exit(2)

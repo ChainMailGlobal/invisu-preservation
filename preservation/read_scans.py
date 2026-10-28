@@ -17,6 +17,12 @@ Usage:
 --thinking    auto = send no chat_template_kwargs; off/on = enable_thinking flag
 --tiles       second pass: re-read already-read pages in four higher-res
               quadrants and merge new finds (costs 4 calls per page)
+--max-tokens  completion ceiling per call (default 4000)
+--rep-penalty vLLM repetition_penalty (e.g. 1.05). Needed on the self-served
+              Nemotron 3 Nano Omni endpoint: at temperature 0 it locked into
+              repeating one dimension string ("11'-8\"" x80) on sheet 11 until
+              it hit the ceiling. A loop guard also cuts any run of 6+
+              identical consecutive texts and records read.loop_cut_at.
 Stops with exit code 2 if Token Factory returns 402 or the spend cap is hit.
 """
 from __future__ import annotations
@@ -87,13 +93,29 @@ def thinking_extra(mode: str):
 
 
 def call_vlm(png_b64: str, *, max_tokens=4000, prompt=None, thinking="auto",
-             purpose=""):
+             purpose="", rep_penalty: float | None = None):
     messages = [{"role": "user", "content": [
         {"type": "text", "text": prompt or PROMPT},
         {"type": "image_url",
          "image_url": {"url": f"data:image/png;base64,{png_b64}"}}]}]
+    extra = dict(thinking_extra(thinking) or {})
+    if rep_penalty:
+        extra["repetition_penalty"] = rep_penalty   # vLLM extra sampling param
     return tf.chat(tf.EYES, messages, max_tokens=max_tokens, temperature=0,
-                   extra=thinking_extra(thinking), purpose=purpose, timeout=300)
+                   extra=extra or None, purpose=purpose, timeout=300)
+
+
+def cut_loop(spans, run: int = 6):
+    """Degenerate decoding shows up as the same text repeated many times in a
+    row. A sheet can legitimately repeat a bay dimension a few times; `run`
+    identical consecutive entries is a loop. Cut at its onset and report
+    where, so the page is flagged rather than indexed with junk."""
+    n = 0
+    for i in range(1, len(spans)):
+        n = n + 1 if spans[i][0] == spans[i - 1][0] else 0
+        if n >= run - 1:
+            return spans[:i - n], i - n
+    return spans, None
 
 
 def shrink(png_path: str, edge=1400):
@@ -173,10 +195,12 @@ def fmt_cost(reply):
             f"{usd}, {reply['latency_s']}s, finish={reply['finish']}")
 
 
-def read_page(png: str, s: dict, *, edge: int, thinking: str, pg: str):
+def read_page(png: str, s: dict, *, edge: int, thinking: str, pg: str,
+              max_tokens: int = 4000, rep_penalty: float | None = None):
     """One full-sheet read. Returns (scene dict or None, description, reply)."""
     b64, tw, th = shrink(png, edge)
-    reply, err = call_vlm(b64, thinking=thinking, purpose=f"read page {pg}")
+    reply, err = call_vlm(b64, thinking=thinking, purpose=f"read page {pg}",
+                          max_tokens=max_tokens, rep_penalty=rep_penalty)
     if err:
         print(f"[{pg}] ERROR {err}", flush=True)
         return None, "", None
@@ -187,15 +211,26 @@ def read_page(png: str, s: dict, *, edge: int, thinking: str, pg: str):
               flush=True)
         return None, "", reply
     W, H = s.get("width") or 1, s.get("height") or 1
-    s["spans"] = spans_from(d, W, H, tw, th)
+    spans, loop_at = cut_loop(spans_from(d, W, H, tw, th))
+    if loop_at is not None:
+        print(f"[{pg}] LOOP: identical text repeated from entry {loop_at}; "
+              f"cut there", flush=True)
+    s["spans"] = spans
     title = (d.get("title") or "").strip() or None
     s["title"] = title
     desc = (d.get("description") or "").strip()
     s["description"] = desc
+    # provenance of this read — which model, where, with what settings
+    s["read"] = {"model": tf.EYES, "provider": tf.PROVIDER, "edge": edge,
+                 "max_tokens": max_tokens, "rep_penalty": rep_penalty,
+                 "thinking": thinking, "finish": reply["finish"],
+                 "latency_s": reply["latency_s"], "loop_cut_at": loop_at,
+                 "ts": __import__("time").strftime("%Y-%m-%dT%H:%M:%S")}
     return s, desc, reply
 
 
-def tile_pass(png: str, s: dict, *, thinking: str, pg: str):
+def tile_pass(png: str, s: dict, *, thinking: str, pg: str,
+              rep_penalty: float | None = None):
     """Re-read the sheet in four full-resolution quadrants and merge new finds."""
     from PIL import Image
     W, H = s.get("width") or 1, s.get("height") or 1
@@ -216,15 +251,19 @@ def tile_pass(png: str, s: dict, *, thinking: str, pg: str):
             crop.save(buf, "PNG", optimize=True)
             b64 = base64.b64encode(buf.getvalue()).decode()
             reply, err = call_vlm(b64, max_tokens=3000, prompt=TILE_PROMPT,
-                                  thinking=thinking, purpose=f"tile {pg} q{r}{c}")
+                                  thinking=thinking, purpose=f"tile {pg} q{r}{c}",
+                                  rep_penalty=rep_penalty)
             if err:
                 print(f"[{pg}] tile q{r}{c} ERROR {err}", flush=True)
                 continue
             d = parse_json(reply["text"])
             if not d:
                 continue
-            for sp in spans_from(d, W, H, crop.size[0], crop.size[1],
-                                 ox=c * 0.5, oy=r * 0.5, scale=0.5):
+            tile_spans, loop_at = cut_loop(spans_from(
+                d, W, H, crop.size[0], crop.size[1], ox=c * 0.5, oy=r * 0.5, scale=0.5))
+            if loop_at is not None:
+                print(f"[{pg}] tile q{r}{c} LOOP from entry {loop_at}; cut", flush=True)
+            for sp in tile_spans:
                 key = (sp[0].upper(), round(sp[1] / W, 2), round(sp[2] / H, 2))
                 if key in have:
                     continue
@@ -246,6 +285,9 @@ def main():
     ap.add_argument("--kind", default="sheet", help="page kind to read, or 'any'")
     ap.add_argument("--tiles", action="store_true")
     ap.add_argument("--force", action="store_true", help="re-read pages with text")
+    ap.add_argument("--max-tokens", type=int, default=4000)
+    ap.add_argument("--rep-penalty", type=float, default=None,
+                    help="vLLM repetition_penalty, e.g. 1.05 (see module doc)")
     a = ap.parse_args()
 
     pdir = os.path.abspath(a.project_dir)
@@ -269,7 +311,8 @@ def main():
             if a.tiles:
                 if not eyes:
                     continue
-                added = tile_pass(png, s, thinking=a.thinking, pg=pg)
+                added = tile_pass(png, s, thinking=a.thinking, pg=pg,
+                                  rep_penalty=a.rep_penalty)
                 json.dump(s, open(sj, "w", encoding="utf-8"))
                 read += 1
                 print(f"[{pg}] +{added} texts (tile pass) -> {len(s['spans'])}", flush=True)
@@ -280,7 +323,8 @@ def main():
             if a.limit and done >= a.limit:
                 break
             done += 1
-            s2, desc, reply = read_page(png, s, edge=a.edge, thinking=a.thinking, pg=pg)
+            s2, desc, reply = read_page(png, s, edge=a.edge, thinking=a.thinking, pg=pg,
+                                        max_tokens=a.max_tokens, rep_penalty=a.rep_penalty)
             if reply is not None:
                 print(f"[{pg}] call: {fmt_cost(reply)}"
                       + (f" reasoning_chars={len(reply['reasoning'])}"
