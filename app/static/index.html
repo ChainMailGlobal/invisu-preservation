@@ -41,7 +41,7 @@
   #outcome{display:inline-block;font-weight:700;font-size:12px;letter-spacing:.5px;padding:3px 10px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
   #outcome.ANSWERED{color:var(--ok);border-color:var(--ok)} #outcome.ANSWERED_FROM_MEMORY{color:var(--mem);border-color:var(--mem)}
   #outcome.NOT_IN_THE_SET{color:var(--not);border-color:var(--not)} #outcome.UNKNOWN_ENTITY{color:var(--unk);border-color:var(--unk)}
-  #outcome.MODEL_UNAVAILABLE,#outcome.UNPARSED{color:var(--off);border-color:var(--off)}
+  #outcome.MODEL_UNAVAILABLE,#outcome.UNPARSED,#outcome.ERROR{color:var(--off);border-color:var(--off)}
   #answer{white-space:pre-wrap;background:#0f1114;border:1px solid var(--line);border-radius:8px;padding:10px;min-height:60px}
   .receipt{background:#1b2a1e;border:1px solid var(--ok);color:var(--ok);border-radius:6px;padding:3px 9px;font-size:12.5px;cursor:pointer;font-weight:600}
   .receipt.bad{background:#2a1b1b;border-color:var(--off);color:var(--off)}
@@ -89,21 +89,92 @@
   </aside>
 </main>
 <script>
-const S = {pages:[], byId:{}, sel:null, filter:'all', hits:{}, receipts:[]};
+// One page, two modes. 'server': the FastAPI app (api/*), Nemotron-3-Ultra answers.
+// 'static': the same UI on a static host; set.json / pages/PG-NN.json / texts.json,
+// search runs in the browser (mirrors preservation/archive.py), no model call.
+const S = {pages:[], byId:{}, sel:null, filter:'all', hits:{}, receipts:[], set:null, texts:null, mode:'server'};
 const $ = id => document.getElementById(id);
 const EXAMPLES = ['where is the throne room','which sheets show the Richards Street elevation',
                   'what does sheet 12 reference','what wood species is the central stair balustrade'];
+const STATIC_ANSWER = 'static demo: no model call — Nemotron runs in the local app and the video';
+const STOP = new Set(('how many much is are there the a an of on in find where show me all count what which do we have does ' +
+  'this set sheet sheets page pages reference references refs for with and any list search that from into about ' +
+  'was were who when did its has can you tell please drawing drawings').split(' '));
+
+async function getJSON(url){ const r = await fetch(url, {cache:'no-store'}); if(!r.ok) throw new Error(`${url}: HTTP ${r.status}`); return r.json(); }
+async function detectMode(){
+  try{ const r = await fetch('api/health', {cache:'no-store'});
+       if (r.ok && (r.headers.get('content-type')||'').includes('json')){ const j = await r.json(); if (j && typeof j.ok !== 'undefined') return 'server'; } }
+  catch(e){}
+  return 'static';
+}
+
+// ---- search: same rules as archive.search_terms / _term_filter / term_rows ----
+function searchTerms(q){
+  const out=[];
+  for (const w of (q.match(/[A-Za-z][\w\-'.]{2,}/g)||[])){
+    if (STOP.has(w.toLowerCase())) continue;
+    let t = w.toUpperCase().replace(/[.\-']+$/,'');
+    if (t.endsWith('S') && t.length>3) t = t.slice(0,-1);
+    if (t && !out.includes(t)) out.push(t);
+  }
+  return out;
+}
+function termFilter(root){
+  if (/\d/.test(root) || root.includes('-')){
+    const rx = new RegExp('(?<![A-Z0-9])' + root.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(?![A-Z0-9])');
+    return t => rx.test(t.toUpperCase());
+  }
+  return t => t.toUpperCase().includes(root);
+}
+function localSearch(q, texts, cap=300){
+  const roots = searchTerms(q), hits=[], combined={};
+  for (const root of roots){
+    const keep = termFilter(root);
+    for (const r of texts){
+      if (!r.text.toUpperCase().includes(root) || !keep(r.text)) continue;
+      if (hits.length < cap) hits.push({sheet:r.sheet, text:r.text, bbox:r.bbox, src:r.src, term:root});
+      combined[r.sheet] = (combined[r.sheet]||0) + 1;
+    }
+  }
+  const sheets = Object.keys(combined).map(id=>({id, count:combined[id]})).sort((a,b)=>b.count-a.count);
+  return {roots, hits, sheets};
+}
+
+const data = {
+  set:  () => S.mode==='server' ? getJSON('api/set') : getJSON('set.json'),
+  page: id => S.mode==='server' ? getJSON('api/page/'+id) : getJSON('pages/'+id+'.json'),
+  async texts(){ if (!S.texts) S.texts = await getJSON('texts.json'); return S.texts; },
+  async ask(q, sid){
+    if (S.mode==='server'){
+      const r = await fetch('api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q, sheet_id:sid})});
+      if (!r.ok) throw new Error('ask: HTTP '+r.status);
+      return r.json();
+    }
+    const {roots,hits,sheets} = localSearch(q, await data.texts());
+    return {question:q, sheet_id:sid, outcome:'MODEL_UNAVAILABLE', answer:STATIC_ANSWER, available:false,
+            receipts:[], verified:false, notes:[STATIC_ANSWER], roots, hits, sheets,
+            top_sheet: sheets.length ? sheets[0].id : null, model: S.set.model};
+  }
+};
+const short = id => (id||'').split('/').pop();
 
 async function load(){
-  const d = await (await fetch('/api/set')).json();
+  S.mode = await detectMode();
+  const d = await data.set(); S.set = d;
   S.pages = d.pages; S.byId = Object.fromEntries(d.pages.map(p=>[p.id,p]));
   const s = d.summary;
   $('setname').textContent = `${d.name} · ${s.pages} pages: ${s.documents} documents, ${s.sheets} sheets, ${s.photos} photographs · ${s.texts} text entries (${s.texts_eyes} read from scans)`;
-  $('models').textContent = `eyes ${d.eyes.split('/')[1]} · brain ${d.model.split('/')[1]} · Nebius Token Factory` + (d.model_note ? ` · ${d.model_note}` : '');
+  $('models').textContent = `eyes ${short(d.eyes)} · brain ${short(d.model)} · Nebius Token Factory` +
+    (S.mode==='static' ? ' (static demo)' : (d.model_note ? ` · ${d.model_note}` : ''));
   for (const ex of EXAMPLES){ const c=document.createElement('span'); c.className='chip'; c.textContent=ex; c.onclick=()=>{$('q').value=ex; ask();}; $('examples').appendChild(c); }
   renderList();
-  const first = S.pages.find(p=>p.kind==='sheet' && p.texts>0) || S.pages.find(p=>p.kind==='sheet') || S.pages[0];
-  if (first) select(first.id);
+  const hash = decodeURIComponent(location.hash.slice(1)).toUpperCase();
+  const q = new URLSearchParams(location.search).get('q');
+  const first = S.byId[hash] ? hash
+    : (S.pages.find(p=>p.kind==='sheet' && p.texts>0) || S.pages.find(p=>p.kind==='sheet') || S.pages[0]).id;
+  await select(first);
+  if (q){ $('q').value = q; await ask({keepPage: !!S.byId[hash]}); }
 }
 function renderList(){
   const el = $('pages'); el.innerHTML='';
@@ -116,18 +187,19 @@ function renderList(){
     el.appendChild(d);
   }
 }
-document.querySelectorAll('.filters button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); S.filter=b.dataset.k; renderList();});
 
 async function select(id){
   S.sel = id; const p = S.byId[id]; if(!p) return;
   document.querySelectorAll('.pg').forEach(x=>x.classList.toggle('sel', x.id==='li-'+id));
   const li = $('li-'+id); if (li) li.scrollIntoView({block:'nearest'});
+  try{ history.replaceState(null, '', location.pathname + location.search + '#' + id); }catch(e){}
   $('ptitle').textContent = `${p.id} · ${p.title || '(no title read)'}`;
   $('pmeta').textContent = `${p.kind}${p.habs_no?` · HABS sheet ${p.habs_no}`:''} · ${p.width}×${p.height} px · ${p.texts} text entries`;
   $('full').href = p.image_url;
   $('overlay').innerHTML='';
   $('img').src = p.view_url;
-  const det = await (await fetch('/api/page/'+id)).json();
+  let det;
+  try{ det = await data.page(id); }catch(e){ $('reading').textContent = String(e); return; }
   p.detail = det;
   const refs = det.refs.map(r=>`${r.text} → ${r.points_to||'?'}`).join(' · ');
   const back = det.referenced_by.map(r=>`${r.sheet}: ${r.text}`).join(' · ');
@@ -146,26 +218,28 @@ function drawBoxes(){
     b.title=h.text; ov.appendChild(b);
   }
 }
-$('img').onload = drawBoxes; window.onresize = drawBoxes;
-
 function groupHits(hits){ const g={}; for (const h of hits){ (g[h.sheet] ||= []).push(h); } return g; }
 
-async function ask(){
+async function ask(opts={}){
   const q = $('q').value.trim(); if(!q) return;
-  $('go').disabled=true; $('status').textContent='asking Nemotron-3-Ultra…'; $('outcome').className=''; $('outcome').textContent='…';
+  $('go').disabled=true; $('status').textContent = S.mode==='server' ? 'asking Nemotron-3-Ultra…' : 'searching the index…';
+  $('outcome').className=''; $('outcome').textContent='…';
   $('answer').textContent=''; $('receipts').innerHTML=''; $('meta').textContent=''; $('verified').textContent='';
   try{
-    const r = await (await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q, sheet_id:S.sel})})).json();
+    const r = await data.ask(q, S.sel);
     S.hits = groupHits(r.hits||[]); S.receipts = r.receipts||[];
     $('outcome').textContent = r.outcome.replaceAll('_',' '); $('outcome').className = r.outcome;
     $('answer').textContent = r.answer || '';
     $('verified').textContent = r.available ? (r.verified ? 'receipts verified against the index' : (r.notes||[]).join('; ')) : '';
     for (const id of S.receipts){ const c=document.createElement('span'); c.className='receipt'+(S.byId[id]?'':' bad'); c.textContent=id+(S.byId[id]&&S.byId[id].title?` · ${S.byId[id].title}`:''); c.onclick=()=>select(id); $('receipts').appendChild(c); }
     if (r.available && r.usage) $('meta').textContent = `${r.model} · ${r.usage.prompt_tokens} in / ${r.usage.completion_tokens} out · ${r.latency_s}s · evidence pack ${r.pack_chars} chars` + (r.usd!=null?` · $${r.usd.toFixed(4)}`:'');
-    else if (!r.available) $('meta').textContent = 'The index below still works: hits are from the committed index, no model involved.';
+    else if (!r.available) $('meta').textContent = 'The index hits below are from the committed index, no model involved.';
     renderHits(r);
-    if (S.receipts.length && S.byId[S.receipts[0]] && !S.receipts.includes(S.sel)) select(S.receipts[0]); else if (r.top_sheet && !r.available && S.byId[r.top_sheet]) select(r.top_sheet); else drawBoxes();
-  }catch(e){ $('outcome').textContent='ERROR'; $('outcome').className='MODEL_UNAVAILABLE'; $('answer').textContent=String(e); }
+    if (opts.keepPage) drawBoxes();
+    else if (S.receipts.length && S.byId[S.receipts[0]] && !S.receipts.includes(S.sel)) select(S.receipts[0]);
+    else if (r.top_sheet && !r.available && S.byId[r.top_sheet]) select(r.top_sheet);
+    else drawBoxes();
+  }catch(e){ $('outcome').textContent='ERROR'; $('outcome').className='ERROR'; $('answer').textContent=String(e); }
   $('go').disabled=false; $('status').textContent='';
 }
 function renderHits(r){
@@ -176,8 +250,12 @@ function renderHits(r){
     const d=document.createElement('div'); d.className='h'; d.innerHTML=`<b>${s.id}</b> ×${s.count}${p&&p.title?` — ${p.title}`:''}<br><span class="meta">${ex}</span>`; d.onclick=()=>select(s.id); el.appendChild(d);
   }
 }
-$('go').onclick = ask; $('q').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); ask(); }});
-load();
+if (typeof document !== 'undefined' && document.getElementById('go')){
+  document.querySelectorAll('.filters button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); S.filter=b.dataset.k; renderList();});
+  $('img').onload = drawBoxes; window.onresize = drawBoxes;
+  $('go').onclick = ()=>ask(); $('q').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); ask(); }});
+  load();
+}
 </script>
 </body>
 </html>

@@ -125,30 +125,38 @@ def get_set():
                 model=tf.BRAIN, eyes=tf.EYES, model_note=model_disabled_reason())
 
 
-@app.get("/api/page/{sheet_id}")
-def get_page(sheet_id: str):
-    sid = sheet_id.upper()
-    conn = db()
-    try:
-        row = conn.execute("SELECT sheet_no, page, kind, habs_no, title, width, height "
-                           "FROM sheets WHERE sheet_no=?", (sid,)).fetchone()
-        if not row:
-            raise HTTPException(404, f"no page {sid}")
-        texts = [dict(text=t, bbox=[x1, y1, x2, y2], src=src) for t, x1, y1, x2, y2, src in
-                 conn.execute("SELECT text, x1, y1, x2, y2, src FROM texts WHERE sheet_no=? "
-                              "ORDER BY y1, x1", (sid,))]
-        refs = [dict(text=t, points_to=p, bbox=[x1, y1, x2, y2]) for t, p, x1, y1, x2, y2 in
-                conn.execute("SELECT text, points_to, x1, y1, x2, y2 FROM findings "
-                             "WHERE sheet_no=? AND kind='ref'", (sid,))]
-        back = [dict(sheet=s, text=t) for s, t in conn.execute(
-            "SELECT sheet_no, text FROM findings WHERE points_to=? AND kind='ref'", (sid,))]
-        issues = [m for (m,) in conn.execute("SELECT message FROM issues WHERE sheet_no=?", (sid,))]
-    finally:
-        conn.close()
+def page_payload(conn, sid: str) -> dict | None:
+    """What GET /api/page/{sid} returns; None when the page is not indexed."""
+    sid = sid.upper()
+    row = conn.execute("SELECT sheet_no, page, kind, habs_no, title, width, height "
+                       "FROM sheets WHERE sheet_no=?", (sid,)).fetchone()
+    if not row:
+        return None
+    texts = [dict(text=t, bbox=[x1, y1, x2, y2], src=src) for t, x1, y1, x2, y2, src in
+             conn.execute("SELECT text, x1, y1, x2, y2, src FROM texts WHERE sheet_no=? "
+                          "ORDER BY y1, x1", (sid,))]
+    refs = [dict(text=t, points_to=p, bbox=[x1, y1, x2, y2]) for t, p, x1, y1, x2, y2 in
+            conn.execute("SELECT text, points_to, x1, y1, x2, y2 FROM findings "
+                         "WHERE sheet_no=? AND kind='ref'", (sid,))]
+    back = [dict(sheet=s, text=t) for s, t in conn.execute(
+        "SELECT sheet_no, text FROM findings WHERE points_to=? AND kind='ref'", (sid,))]
+    issues = [m for (m,) in conn.execute("SELECT message FROM issues WHERE sheet_no=?", (sid,))]
     return dict(id=row[0], page=row[1], kind=row[2], habs_no=row[3], title=row[4],
                 width=row[5], height=row[6], texts=texts, refs=refs,
                 referenced_by=back, issues=issues,
-                reading_order=archive.sheet_text(db(), sid, cap=12000))
+                reading_order=archive.sheet_text(conn, sid, cap=12000))
+
+
+@app.get("/api/page/{sheet_id}")
+def get_page(sheet_id: str):
+    conn = db()
+    try:
+        p = page_payload(conn, sheet_id)
+    finally:
+        conn.close()
+    if p is None:
+        raise HTTPException(404, f"no page {sheet_id.upper()}")
+    return p
 
 
 @app.get("/api/search")
