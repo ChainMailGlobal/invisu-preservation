@@ -131,14 +131,41 @@ does not say.
 hand lettering vs. the earlier Omni read, where Ultra's four-outcome discipline held
 and where it needed the code-side check.}}
 
+## Limitations and failure cases
+
+Stated plainly, because a reader that refuses to invent should also say what it
+cannot do.
+
+- One structure in the demo set (Iolani Palace). The pipeline is generic; the
+  evidence is not yet.
+- The static Space never calls a model: it is index search over exported JSON.
+  The four outcomes, the receipts and their verification exist only in the
+  local app (and in the video).
+- Scanned sheets are read at 1,400 px on the long side, so small hand lettering
+  can be missed. Mitigation: a quadrant pass (`read_scans --tiles`) re-reads a
+  sheet in four higher-resolution tiles, at four calls per sheet.
+- Model boxes are normalized (fractions, percent or pixels — whatever the model
+  returned), but their precision is unverified until measured against our
+  vector-truth harness. Today they are good enough to point at lettering, not
+  to measure from.
+- English only: prompts, stop-word list and the transcription target.
+- Typed references depend on each sheet's own "SHEET N OF 22" lettering being
+  read. A sheet whose self-number was missed cannot be a reference target; the
+  cross-reference check reports that instead of guessing.
+- The four-outcome contract is enforced by the prompt plus code-side receipt
+  verification. An answer whose receipt fails verification is shown as
+  unverified, not hidden — and the model can still be wrong inside a page that
+  verifies.
+- Photo captions come from an earlier read on a model since removed from the
+  Token Factory catalog (Nemotron-3-Nano-Omni); they were not re-read.
+- Not built for accessibility; no claim is made.
+- Failure cases surfaced by the real read: {{FAILURE_CASES — e.g. sheets that
+  returned junk boxes and were re-read with the quadrant pass, sheets whose JSON
+  was truncated and salvaged, titles the model misread}}.
+
 ## What's next
 
-The same three steps — ingest, read, index — work on any HABS/HAER/HALS record.
-Next is a batch runner over loc.gov record ids, so a preservation office can
-point at its county and get every set answerable; then the verified-outcome
-layer we run in our product (iNViSU Spatial Memory, verified by MAG) on top,
-so answers that a human confirmed are remembered across sets. The eyes stay
-open models on Token Factory; the sets stay public domain.
+The same three steps, ingest, read, index, work on any HABS/HAER/HALS record; a batch runner over loc.gov record IDs lets a preservation office point at its county and get every set answerable. The eyes get trained: Nemotron-Nano-V2-12B VL is fine-tunable on Token Factory, and we have a 228,000-box self-labeled corpus of drawing text with exact positions built for exactly that, because transcription without real localization is the gap every general vision model still has. Then the verified-outcome layer from our product, INViSU Spatial Memory verified by MAG, so answers a human confirmed are remembered across sets. Vector drawings already need no model at all; the model is for scans and reasoning, which is what makes a small, measured Seer on an ordinary laptop the end of this road.
 
 ## Feedback for Nebius and NVIDIA
 

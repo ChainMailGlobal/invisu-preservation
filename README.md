@@ -206,6 +206,38 @@ Resume, in order, once the account has credits: `read_scans --only 11`, look
 at the output, `read_scans`, `build_index`, then the four agent questions with
 `--save`.
 
+## Limitations and failure cases
+
+Stated plainly, because a reader that refuses to invent should also say what it
+cannot do.
+
+- One structure in the demo set (Iolani Palace). The pipeline is generic; the
+  evidence is not yet.
+- The static Space never calls a model: it is index search over exported JSON.
+  The four outcomes, the receipts and their verification exist only in the
+  local app (and in the video).
+- Scanned sheets are read at 1,400 px on the long side, so small hand lettering
+  can be missed. Mitigation: a quadrant pass (`read_scans --tiles`) re-reads a
+  sheet in four higher-resolution tiles, at four calls per sheet.
+- Model boxes are normalized (fractions, percent or pixels — whatever the model
+  returned), but their precision is unverified until measured against our
+  vector-truth harness. Today they are good enough to point at lettering, not
+  to measure from.
+- English only: prompts, stop-word list and the transcription target.
+- Typed references depend on each sheet's own "SHEET N OF 22" lettering being
+  read. A sheet whose self-number was missed cannot be a reference target; the
+  cross-reference check reports that instead of guessing.
+- The four-outcome contract is enforced by the prompt plus code-side receipt
+  verification. An answer whose receipt fails verification is shown as
+  unverified, not hidden — and the model can still be wrong inside a page that
+  verifies.
+- Photo captions come from an earlier read on a model since removed from the
+  Token Factory catalog (Nemotron-3-Nano-Omni); they were not re-read.
+- Not built for accessibility; no claim is made.
+- Failure cases surfaced by the real read: {{FAILURE_CASES — e.g. sheets that
+  returned junk boxes and were re-read with the quadrant pass, sheets whose JSON
+  was truncated and salvaged, titles the model misread}}.
+
 ## Attribution and license
 
 - Source documents: Historic American Buildings Survey, Library of Congress
