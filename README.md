@@ -209,14 +209,14 @@ Done and verified, from the committed ledger and index:
   the scans after the quadrant pass, 47 typed cross-references, 7
   unresolved (all "SEE SHEET 22" — this LOC record has no sheet 22)
 - the four agent transcripts in `docs/transcripts/`, reasoning mode on,
-  receipts verified against the index: {{TRANSCRIPT_SUMMARY}}
+  receipts verified against the index: throne room ANSWERED (PG-24, HABS sheet 17), Richards Street elevation ANSWERED (PG-14, PG-18), HABS sheet 12 references ANSWERED (sheet 21, receipt PG-19), balustrade wood species NOT_IN_THE_SET (PG-13, PG-14, PG-28 checked)
 - web app (FastAPI + one page) run against the live endpoint; thumbnails and
   2400 px view renditions committed
 - static demo exported and deployed to a free Hugging Face static Space:
   https://cre808ive-invisu-preservation.static.hf.space/ (browse, search, deep links;
   no model call); `Dockerfile` kept for running the full app elsewhere
-- endpoint time: {{GPU_MINUTES}} minutes of one preemptible L40S, {{GPU_USD}}
-  on the console rate; {{N_CALLS}} model calls, {{N_TOKENS}} tokens
+- endpoint time: about 124 minutes of one preemptible L40S, about $1.59
+  on the console rate; 253 model calls, 1,857,971 tokens
 
 Not done: Token Factory still answers **HTTP 402 `credit_balance_exhausted`**
 (the Nebius AI Studio key as well), so Nemotron-3.5-Super-VL and

@@ -116,7 +116,7 @@ def main():
     name = json.loads(pj.read_text(encoding="utf-8")).get("name", pdir.name) if pj.exists() else pdir.name
     set_payload = dict(name=name, summary=archive.summary(conn), pages=pages,
                        issues=[m for (m,) in conn.execute("SELECT message FROM issues")],
-                       model=tf.BRAIN, eyes=tf.EYES, model_note=STATIC_NOTE, mode="static",
+                       model=tf.BRAIN, eyes=tf.EYES, provider=tf.PROVIDER, model_note=STATIC_NOTE, mode="static",
                        exported=time.strftime("%Y-%m-%dT%H:%M:%S"))
     (out / "set.json").write_text(json.dumps(set_payload), encoding="utf-8")
 

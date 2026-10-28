@@ -4,45 +4,45 @@
     {"file": "shot_space.png", "url": "https://cre808ive-invisu-preservation.static.hf.space/", "settle_ms": 4000}
   ],
   "segments": [
-    {"id": "ask1", "min": 2.5,
+    {"id": "ask1", "min": 2.0, "pad": 0.3,
      "do": [{"goto": "{app}/"}, {"wait_ready": true},
-            {"type": "#q", "text": "where is the throne room", "delay_ms": 55}, {"hold": 0.4}, {"click": "#go"}],
+            {"type": "#q", "text": "where is the throne room", "delay_ms": 50}, {"hold": 0.3}, {"click": "#go"}],
      "say": "Where is the throne room?"},
 
-    {"id": "answer1", "pad": 0.8,
-     "do": [{"wait_outcome": true}, {"hold": 1.2}, {"click_receipt": 0}],
-     "say": "Answered, with the sheet. NVIDIA Nemotron answered from the index, and Nemotron read this sheet, served by us on a single GPU on Nebius AI Cloud. The boxes are the lettering it relied on."},
+    {"id": "answer1", "pad": 0.6,
+     "do": [{"wait_outcome": true}, {"hold": 1.0}, {"click_receipt": 0}],
+     "say": "Answered, with the sheet. NVIDIA Nemotron answered from the index and read this sheet, served on a single GPU on a Nebius AI Cloud Serverless endpoint. The boxes are the lettering it relied on."},
 
-    {"id": "loc", "pad": 0.8,
-     "do": [{"hold": 0.5}],
-     "say": "The Library of Congress holds about fifty-five thousand public-domain drawing sets of American buildings. Until now, none of them could be asked a question."},
+    {"id": "problem", "pad": 0.6,
+     "do": [{"hold": 0.3}],
+     "say": "The Library of Congress holds fifty-five thousand public-domain drawing sets of American buildings. Preservation architects, historians, and the people who maintain these buildings still read them sheet by sheet. None could be asked a question. Until now."},
 
-    {"id": "set", "pad": 0.6,
-     "do": [{"scroll": "#pages", "px": 1800, "steps": 14, "step_ms": 420}],
-     "say": "This is Iolani Palace, Honolulu. HABS number H I dash one, Library of Congress record h i zero zero four seven. Eighty-five pages: the caption and data pages, twenty-three scanned drawing sheets, fifty-seven photographs. The survey drew the sheets in 1964 and 1966; several say on their face that they were redrawn from the 1903 plans. We say the dates the sheets say."},
+    {"id": "set", "pad": 0.5,
+     "do": [{"scroll": "#pages", "px": 1800, "steps": 12, "step_ms": 380}],
+     "say": "This is Iolani Palace, Honolulu, HABS number H I one: eighty-five pages, twenty-three scanned drawing sheets, fifty-seven photographs, surveyed in 1964 and 1966, several redrawn from the 1903 plans. We say the dates the sheets say."},
 
-    {"id": "read", "pad": 0.6,
-     "do": [{"select_page": "PG-14"}, {"hold": 0.8}, {"scroll": "#reading", "px": 900, "steps": 10, "step_ms": 420}],
-     "say": "Nemotron 3 Nano Omni read every scanned sheet on one L40S on Nebius AI Cloud: title, description, every legible piece of hand lettering with its position, then four quadrants of each sheet for the small notes. Across the set: 1,818 text entries and 23 titles, read by the model, not typed by us."},
+    {"id": "read", "pad": 0.5,
+     "do": [{"select_page": "PG-14"}, {"hold": 0.6}, {"scroll": "#reading", "px": 900, "steps": 9, "step_ms": 380}],
+     "say": "NVIDIA Nemotron 3 Nano Omni read every sheet on one L40S on Nebius AI Cloud: title, description, every legible piece of hand lettering with its position, then four quadrants for the small notes. 1,818 entries, read by the model, not typed by us."},
 
-    {"id": "q2", "pad": 0.8,
-     "do": [{"click_chip": 1}, {"wait_outcome": true}, {"hold": 0.8}, {"hover_receipts": true}],
-     "say": "Which sheets show the Richards Street elevation. Nemotron answers over the evidence pack the index builds: with the sheets as receipts. Receipts are verified in code against the index; a page the model cites that does not exist is flagged, not shown as fact."},
+    {"id": "q2", "pad": 0.6,
+     "do": [{"click_chip": 1}, {"wait_outcome": true}, {"hold": 0.6}, {"hover_receipts": true}],
+     "say": "Which sheets show the Richards Street elevation. Nemotron answers over the evidence pack the index builds, with the sheets as receipts, verified in code: a page that does not exist is flagged, never shown as fact."},
 
-    {"id": "q3", "pad": 0.8,
-     "do": [{"click_chip": 2}, {"wait_outcome": true}, {"hold": 0.8}, {"click_receipt": 0}, {"hold": 0.6}],
-     "say": "What does HABS sheet 12 reference. Historic sheets cross-reference by lettering: SEE SHEET N. We type those references, so the answer points at the sheet the lettering names, with that lettering as the receipt, and the cross-reference check reports any target that is not in the set."},
+    {"id": "q3", "pad": 0.6,
+     "do": [{"click_chip": 2}, {"wait_outcome": true}, {"hold": 0.6}, {"click_receipt": 0}, {"hold": 0.4}],
+     "say": "What does HABS sheet 12 reference. Historic sheets cross-reference by lettering, SEE SHEET N. We type those into links, so the answer carries the lettering as its receipt, and the check reports any target missing from the set."},
 
-    {"id": "q4", "pad": 0.8,
-     "do": [{"type": "#q", "text": "what wood species is the central stair balustrade", "delay_ms": 45}, {"press": "Enter"}, {"wait_outcome": true}, {"hold": 1.0}],
-     "say": "And the question every archive tool gets wrong. What wood is the central stair balustrade. The set does not say, so Nemotron answers: not in the set, with the pages it checked. Four outcomes, nothing else: answered with receipts, answered from memory with its date, not in the set, unknown entity."},
+    {"id": "q4", "pad": 0.6,
+     "do": [{"type": "#q", "text": "what wood species is the central stair balustrade", "delay_ms": 40}, {"press": "Enter"}, {"wait_outcome": true}, {"hold": 0.8}],
+     "say": "And the question every archive tool gets wrong. What wood is the central stair balustrade. The set does not say, so Nemotron answers: not in the set, with the pages it checked. Four outcomes, nothing else."},
 
-    {"id": "open", "pad": 0.4,
-     "do": [{"overlay": "runs/video/shot_github.png"}, {"hold": 5.5}, {"overlay": "runs/video/shot_space.png"}, {"hold": 3.0}, {"overlay_off": true}],
-     "say": "Open method on open models: MIT on GitHub, every call to NVIDIA Nemotron on Nebius, built for Token Factory, read on our own AI Cloud endpoint when the credits ran out. The documents are public domain, from loc dot gov."},
+    {"id": "open", "pad": 0.3,
+     "do": [{"overlay": "runs/video/shot_github.png"}, {"hold": 5.0}, {"overlay": "runs/video/shot_space.png"}, {"hold": 2.5}, {"overlay_off": true}],
+     "say": "Open method on open models: MIT on GitHub, every call to NVIDIA Nemotron on Nebius, built for Token Factory, read on our own AI Cloud endpoint when the credits ran out. The documents are public domain."},
 
-    {"id": "close", "pad": 1.5,
-     "do": [{"click_chip": 0}, {"wait_outcome": true}, {"hold": 0.6}, {"click_receipt": 0}],
-     "say": "Nemotron on Nebius reads it today, on one GPU. Next, we train the eyes on Token Factory. The drawings stay public domain, and nothing invents a sheet."}
+    {"id": "close", "pad": 1.2,
+     "do": [{"click_chip": 0}, {"wait_outcome": true}, {"hold": 0.4}, {"click_receipt": 0}],
+     "say": "Nemotron on Nebius reads it today, on one GPU. Next, we train the eyes on Token Factory. Nothing invents a sheet."}
   ]
 }

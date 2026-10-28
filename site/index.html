@@ -72,7 +72,7 @@
     <div id="stage"><div id="wrap"><img id="img" alt="selected page"><div id="overlay"></div></div></div>
   </section>
   <aside id="ask">
-    <div class="meta" id="hint">Pick a page on the left, or ask. Eyes: Nemotron-3.5-Super-VL. Brain: Nemotron-3-Ultra. Both on Nebius Token Factory.</div>
+    <div class="meta" id="hint">Pick a page on the left, or ask. NVIDIA Nemotron on Nebius reads the sheets and answers; the header names the models and the surface that served them.</div>
     <textarea id="q" placeholder="Ask the set — e.g. where is the throne room"></textarea>
     <div class="row">
       <button class="go" id="go">Ask</button>
@@ -96,7 +96,7 @@
 const S = {pages:[], byId:{}, sel:null, filter:'all', hits:{}, receipts:[], set:null, texts:null, mode:'server'};
 const $ = id => document.getElementById(id);
 const EXAMPLES = ['where is the throne room','which sheets show the Richards Street elevation',
-                  'what does sheet 12 reference','what wood species is the central stair balustrade'];
+                  'what does HABS sheet 12 reference','what wood species is the central stair balustrade'];
 const STATIC_ANSWER = 'static demo: no model call — Nemotron runs in the local app and the video';
 const STOP = new Set(('how many much is are there the a an of on in find where show me all count what which do we have does ' +
   'this set sheet sheets page pages reference references refs for with and any list search that from into about ' +
@@ -166,7 +166,8 @@ async function load(){
   S.pages = d.pages; S.byId = Object.fromEntries(d.pages.map(p=>[p.id,p]));
   const s = d.summary;
   $('setname').textContent = `${d.name} · ${s.pages} pages: ${s.documents} documents, ${s.sheets} sheets, ${s.photos} photographs · ${s.texts} text entries (${s.texts_eyes} read from scans)`;
-  $('models').textContent = `eyes ${short(d.eyes)} · brain ${short(d.model)} · Nebius Token Factory` +
+  const where = !d.provider ? 'Nebius' : (d.provider==='token-factory' ? 'Nebius Token Factory' : `Nebius AI Cloud endpoint (${d.provider})`);
+  $('models').textContent = `eyes ${short(d.eyes)} · brain ${short(d.model)} · ${where}` +
     (S.mode==='static' ? ' (static demo)' : (d.model_note ? ` · ${d.model_note}` : ''));
   for (const ex of EXAMPLES){ const c=document.createElement('span'); c.className='chip'; c.textContent=ex; c.onclick=()=>{$('q').value=ex; ask();}; $('examples').appendChild(c); }
   renderList();

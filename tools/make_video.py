@@ -70,8 +70,19 @@ def narrate(segments: list[dict], out: Path, *, voice: str, rate: str, sapi: boo
             durs.append(0.0)
             continue
         path = out / (f"say_{i:02d}.wav" if sapi else f"say_{i:02d}.mp3")
-        if not path.exists():
-            (tts_sapi if sapi else lambda t, p: tts_edge(t, p, voice, rate))(text, path)
+        if not path.exists() or path.stat().st_size == 0:
+            for attempt in range(4):          # the online voice service drops connections now and then
+                try:
+                    (tts_sapi if sapi else lambda t, p: tts_edge(t, p, voice, rate))(text, path)
+                    if path.exists() and path.stat().st_size > 0:
+                        break
+                except Exception as e:        # noqa: BLE001
+                    print(f"  say {i:02d}: attempt {attempt + 1} failed: {type(e).__name__}: {str(e)[:120]}", flush=True)
+                    if path.exists():
+                        path.unlink()
+                    time.sleep(3 * (attempt + 1))
+            else:
+                raise SystemExit(f"narration for segment {i} failed four times")
         d = ffprobe_duration(path)
         seg["_audio"] = str(path)
         durs.append(d)

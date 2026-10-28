@@ -146,15 +146,13 @@ repository (MIT).
 ## Accomplishments we are proud of
 
 A public-domain drawing set that answers questions with receipts, on open
-models, for {{TOTAL_USD}} of inference ({{N_CALLS}} calls, {{N_TOKENS}} tokens —
+models, for about $1.59 of GPU time of inference (253 calls, 1,857,971 tokens —
 from the committed ledger). And a reader that says "not in the set" when the set
 does not say.
 
 ## What we learned
 
-{{LESSONS — two or three sentences from the transcripts: e.g. how Super-VL handled
-hand lettering vs. the earlier Omni read, where Ultra's four-outcome discipline held
-and where it needed the code-side check.}}
+A 30B model on one GPU reads hand lettering well enough to index a set, and it answers well enough only when the evidence is clean and the question's own pages are resolved for it: duplicated lettering made it loop, a stray note made it answer the reverse direction, and both were fixed in the evidence pack, not in the model. Every failure we found came from reading the model's output; none showed in the logs. The four-outcome contract held on every final run, including the refusal, once a missing outcome line could be asked for in a second call.
 
 ## Limitations and failure cases
 
@@ -187,6 +185,11 @@ cannot do.
   It answered with verified receipts, but on "where is the throne room" it
   cited the interior sheets and missed the floor plan that places the room. A
   larger brain is the design, not a claim.
+- On "what does HABS sheet 12 reference" the brain answered the reverse direction (what
+  references sheet 12, from a note on sheet 20) until the evidence pack named the direction
+  of each link; every run through the app then read it correctly, and one command-line run
+  without a page open still flipped. Receipts verified either way: a verified page is not a
+  verified reading.
 - Quadrant re-reads produce cut words at quadrant edges ("CENTR", "SEE SH");
   they are indexed as read.
 - Not built for accessibility; no claim is made.
@@ -234,8 +237,7 @@ remove the guesswork. (7) Every restart re-downloads the weights into the
 container disk; a mountable Hugging Face cache volume, or a "pull model to
 volume" step, would cut restarts from ~25 minutes to ~2. (8) Serverless AI has
 no row on the public price page; the console estimate is the only number.
-(9) Latency on one L40S, from the ledger: {{TF_LATENCY_NOTE — median seconds
-per full-sheet read, per quadrant, and per ~21k-token question}}.
+(9) Latency on one L40S, from the ledger: median 13.3 s per full-sheet read (7–24 s), 6.4 s per quadrant, 10–35 s per ~30k-token question with reasoning on, plus a one-time ~27 minutes from endpoint creation to the first served token.
 
 **NVIDIA Nemotron.** (1) Nemotron 3 Nano Omni (FP8) on hand lettering, served
 by vLLM: `enable_thinking` via `chat_template_kwargs` is honored; with it off
@@ -245,8 +247,7 @@ code: a repetition loop at temperature 0 (fixed by `repetition_penalty 1.05`),
 a bare JSON array instead of the requested object on the quadrant prompt, and
 boxes that mix pixel and fraction scales. The model card's "minimum GPU (FP8):
 1× L40S 48GB" held at a 65,536-token context. (2) Adherence to the four-outcome
-contract with reasoning on: {{OMNI_OUTCOME_NOTE — invented page ids across all
-runs, NOT_IN_THE_SET result, inline reasoning length}}. Without a reasoning
+contract with reasoning on: no run cited a page id that is not in the index; NOT_IN_THE_SET fired cleanly on the balustrade question with the three pages it checked; inline reasoning ran 3,000–16,000 characters per question; one final run omitted the OUTCOME line and stated it in a second short call, which the transcript notes. Without a reasoning
 parser the thinking arrives inline before the answer; parsing from the last
 outcome block made it usable, and a 900-token ceiling was not enough once
 thinking was on. (3) A request: a documented, stable JSON mode (or
