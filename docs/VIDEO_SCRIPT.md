@@ -1,7 +1,9 @@
 # Demo video script — 2:30, screen recording with voice
 
-**Setup before recording.** Open the web app (the Space URL or `http://localhost:7860`)
-in a clean browser window, zoom 110%, left list filtered to **All**, no question
+**Setup before recording.** Run the FULL app locally — `uvicorn app.server:app --port 7860`
+with `TOKEN_FACTORY_API_KEY` set — and open `http://localhost:7860` in a clean browser
+window. (The public Space is the static browse/search demo and makes no model call;
+the live answers must come from the local app.) Then: zoom 110%, left list filtered to **All**, no question
 asked yet. Have the four transcripts in `docs/transcripts/` open in a second tab
 in case a live call stalls — read the saved answer rather than wait. Record at
 1080p. Speak at an even pace; the script is ~330 words, which is 2:20 at normal
@@ -20,7 +22,7 @@ Say the brand as "in-VIZ-you".
 | 1:14–1:34 | Click the chip **which sheets show the Richards Street elevation**. Let the receipts render; hover each. | "Which sheets show the Richards Street elevation. {{Q2_RECEIPTS_COUNT}} receipts: {{Q2_RECEIPTS}}. The receipts are verified in code against the index — a page the model cites that does not exist is flagged, not shown as fact." |
 | 1:34–1:54 | Click the chip **what does sheet 12 reference**. Click one receipt; point at "References:" in the reading-order panel. | "What does sheet 12 reference. Historic sheets cross-reference by lettering — SEE SHEET N — not by symbols. We type those references, so the answer is {{Q3_SUMMARY}}, and the cross-reference check reports any target that is not in the set." |
 | 1:54–2:12 | Type **{{Q4_NOT_IN_SET_QUESTION}}** and press Enter. Let the blue NOT IN THE SET label land. | "And the question every archive tool gets wrong. {{Q4_SHORT}}. The set does not say. So the answer is: not in the set — with the pages it checked. Four outcomes are allowed: answered with receipts, answered from memory with its date, not in the set, unknown entity. Nothing else. No invented sheets, no estimated numbers." |
-| 2:12–2:30 | Switch to the GitHub repo tab, show README top (license, models table), then back to the app. | "Open method on open models: MIT, on GitHub, every model call through Nebius Token Factory on NVIDIA Nemotron, source documents public domain from loc.gov. INViSU — every answer carries its sheet, and when the set does not say, it says so." |
+| 2:12–2:30 | Switch to the GitHub repo tab, show README top (license, models table), then the public static demo (https://cre808ive-invisu-preservation.static.hf.space/) for two seconds, then back to the app. | "Open method on open models: MIT, on GitHub, every model call through Nebius Token Factory on NVIDIA Nemotron, source documents public domain from loc.gov. INViSU — every answer carries its sheet, and when the set does not say, it says so." |
 
 ## Placeholders to fill before recording
 

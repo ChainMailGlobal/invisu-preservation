@@ -111,17 +111,17 @@ real numbers), `docs/VIDEO_SCRIPT.md`, `docs/DEVPOST.md`, and the two prices in
 `PRICES` in `preservation/tokenfactory.py` (read them off tokenfactory.nebius.com),
 then `python -m preservation.tokenfactory` once more for the dollar line. Commit.
 
-## 6. Space deploy (no model calls; needs `hf auth login` done)
+## 6. Space deploy (no model calls; `hf auth login` is done on this laptop as CRE808iVE)
 
 ```bash
-HF_SPACE=<user-or-org>/invisu-preservation ./deploy_space.sh
+./deploy_space.sh            # re-exports site/ from the rebuilt index, uploads to the static Space
 ```
 
-Open the Space URL: the left list should show titles on the sheets, and
-"where is the throne room" should return ANSWERED with receipts (this is one
-Ultra call per question — the ledger inside the Space is in `/tmp`, so count
-those questions against the cap by hand). Put the URL in README (`{{SPACE_URL}}`)
-and in `docs/DEVPOST.md`. Commit, push.
+The Space is static — it never calls a model. Open https://cre808ive-invisu-preservation.static.hf.space/
+and check: the sheets in the left list now show titles; `?q=throne%20room`
+hits drawing sheets, not only photographs; `#PG-14` selects the Richards
+Street elevation. Update the README Status numbers and `docs/DEVPOST.md`
+placeholders. Commit, push.
 
 ## 7. Stop conditions
 

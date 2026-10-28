@@ -20,7 +20,8 @@ Best Apps and Agents
 ## Links
 
 - Repo (MIT): https://github.com/ChainMailGlobal/invisu-preservation
-- Demo: {{SPACE_URL}}
+- Demo (static: browse, search, deep links — no model call): https://cre808ive-invisu-preservation.static.hf.space/
+- The model-backed app runs locally from the repo (README → Run); the live answers are in the video and in `docs/transcripts/`
 - Video: {{YOUTUBE_URL}}
 
 ## Inspiration
@@ -85,8 +86,10 @@ Nemotron** open model:
   `issues` (every reference whose target is not in the set).
 - One client talks to Token Factory. It writes a ledger line per call (tokens,
   latency, dollars), enforces a hard spend cap and stops on HTTP 402.
-- The app is FastAPI plus one static page, packaged as a Hugging Face Docker
-  Space. Dependencies: pymupdf, pillow, fastapi, uvicorn. No GPU, no training,
+- The app is FastAPI plus one static page. The public demo is that same page
+  exported to a free Hugging Face static Space (browse, search, deep links; no
+  model call) because Docker Spaces need a paid plan; the UI detects which mode
+  it is in. Dependencies: pymupdf, pillow, fastapi, uvicorn. No GPU, no training,
   no other inference provider.
 
 Lineage: the index and cross-reference check descend from our public PlanGraph

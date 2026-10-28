@@ -1,15 +1,3 @@
----
-title: INViSU Preservation Reader
-emoji: 🏛️
-colorFrom: gray
-colorTo: indigo
-sdk: docker
-app_port: 7860
-pinned: false
-license: mit
-short_description: Ask a Library of Congress drawing set. Get the sheet.
----
-
 # INViSU Preservation Reader
 
 **Ask a Library of Congress drawing set a question. Get the sheet.**
@@ -159,18 +147,22 @@ called (no key, Token Factory 402, spend cap) the answer panel shows
 never crashes on a missing model. `AGENT_DISABLED=1` keeps it index-only on
 purpose.
 
-### Hugging Face Space
+### Hugging Face Space (static demo)
 
-The repo is a Docker Space as-is (`Dockerfile`, port 7860, the front matter at
-the top of this file). After `hf auth login`:
+Docker Spaces need a paid plan, so the public demo is a free **static** Space:
+the same page, fed by exported JSON, with search in the browser and no model
+call ("Ask" labels the outcome MODEL UNAVAILABLE and still shows the index
+hits). Live: https://cre808ive-invisu-preservation.static.hf.space/ — deep links
+`#PG-14` (select a page) and `?q=throne%20room` (run a search).
 
 ```bash
-HF_SPACE=<user-or-org>/invisu-preservation ./deploy_space.sh
+python -m preservation.export_static   # data/ + index.db -> site/ (JSON, images, index.html)
+./deploy_space.sh                      # hf repo create (static) + hf upload site/ — needs `hf auth login`
 ```
 
-The script creates the Space, uploads the tree without `.git`/`.env`, sets
-`TOKEN_FACTORY_API_KEY` as a Space secret (from your env or `.env`) and prints
-the URL. Demo: {{SPACE_URL}} (added at deploy).
+The full app — Nemotron-3.5-Super-VL reading, Nemotron-3-Ultra answering via
+Nebius Token Factory — runs locally with `uvicorn` (above) or anywhere the
+`Dockerfile` runs. The UI is one file that detects which mode it is in.
 
 ## Cost
 
@@ -192,9 +184,10 @@ Done and verified locally:
 - the Token Factory client, ledger and cap; both model ids confirmed present
   on `GET /v1/models`
 - web app (FastAPI + one page) tested against the committed index with the
-  model unavailable; thumbnails and 2400 px view renditions committed;
-  `Dockerfile` and `deploy_space.sh` for a Hugging Face Docker Space (not
-  deployed yet — needs the Space token and credits)
+  model unavailable; thumbnails and 2400 px view renditions committed
+- static demo exported and deployed to a free Hugging Face static Space:
+  https://cre808ive-invisu-preservation.static.hf.space/ (browse, search, deep links;
+  no model call); `Dockerfile` kept for running the full app elsewhere
 
 Blocked — the Token Factory account answered **HTTP 402
 `credit_balance_exhausted`** on the first chat call (the smallest model fails
