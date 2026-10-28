@@ -66,6 +66,21 @@ def _first_line(spans, H):
     return " ".join(str(sp[0]) for sp in words)[:120] or None
 
 
+def eyes_provenance(pdir) -> dict:
+    """Which model read the scanned sheets, and on which surface: taken from the
+    read provenance each page carries, so the UI reports the eyes that actually
+    produced the index rather than whatever the environment says today."""
+    for sj in sorted(Path(pdir).glob("*.scene.json")):
+        try:
+            d = json.loads(sj.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        r = d.get("read")
+        if d.get("kind") == "sheet" and r and r.get("model"):
+            return {"eyes": r.get("model"), "eyes_provider": r.get("provider")}
+    return {}
+
+
 def dedupe_spans(spans, W, H, tol: float = 0.025):
     """The same lettering read twice (a full-sheet pass, then a quadrant pass)
     lands as two spans with the same text and nearly the same position; the

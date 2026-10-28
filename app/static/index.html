@@ -166,8 +166,8 @@ async function load(){
   S.pages = d.pages; S.byId = Object.fromEntries(d.pages.map(p=>[p.id,p]));
   const s = d.summary;
   $('setname').textContent = `${d.name} · ${s.pages} pages: ${s.documents} documents, ${s.sheets} sheets, ${s.photos} photographs · ${s.texts} text entries (${s.texts_eyes} read from scans)`;
-  const where = !d.provider ? 'Nebius' : (d.provider==='token-factory' ? 'Nebius Token Factory' : `Nebius AI Cloud endpoint (${d.provider})`);
-  $('models').textContent = `eyes ${short(d.eyes)} · brain ${short(d.model)} · ${where}` +
+  const where = p => !p ? 'Nebius' : (p==='token-factory' ? 'Nebius Token Factory' : `Nebius AI Cloud endpoint (${p})`);
+  $('models').textContent = `eyes ${short(d.eyes)} on ${where(d.eyes_provider||d.provider)} · brain ${short(d.model)} on ${where(d.provider)}` +
     (S.mode==='static' ? ' (static demo)' : (d.model_note ? ` · ${d.model_note}` : ''));
   for (const ex of EXAMPLES){ const c=document.createElement('span'); c.className='chip'; c.textContent=ex; c.onclick=()=>{$('q').value=ex; ask();}; $('examples').appendChild(c); }
   renderList();

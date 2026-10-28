@@ -329,6 +329,8 @@ def main():
     ap.add_argument("--mp4", default=None)
     ap.add_argument("--keep-head", type=float, default=1.5, help="seconds of each model wait kept at its start")
     ap.add_argument("--keep-tail", type=float, default=0.8, help="seconds of each model wait kept at its end")
+    ap.add_argument("--wait-caption", default="[the model's answer took {secs:.0f} s; waiting time cut]",
+                    help="caption shown where a model wait was cut; {secs} is the real wait")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -352,7 +354,7 @@ def main():
         for a_, b_, secs in cuts:
             t = edited_time(a_, cuts)
             extra += ["", str(n), f"{srt_time(t)} --> {srt_time(t + 2.2)}",
-                      f"[the model's answer took {secs:.0f} s on one L40S; waiting time cut]"]
+                      a.wait_caption.format(secs=secs)]
             n += 1
         srt.write_text("\n".join(extra) + "\n", encoding="utf-8")
         print(f"  cuts: {[(round(a_,1), round(b_,1), round(s,1)) for a_, b_, s in cuts]}", flush=True)

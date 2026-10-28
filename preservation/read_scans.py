@@ -271,7 +271,7 @@ def tile_pass(png: str, s: dict, *, thinking: str, pg: str,
             buf = io.BytesIO()
             crop.save(buf, "PNG", optimize=True)
             b64 = base64.b64encode(buf.getvalue()).decode()
-            reply, err = call_vlm(b64, max_tokens=3000, prompt=TILE_PROMPT,
+            reply, err = call_vlm(b64, max_tokens=6000, prompt=TILE_PROMPT,
                                   thinking=thinking, purpose=f"tile {pg} q{r}{c}",
                                   rep_penalty=rep_penalty)
             if err:

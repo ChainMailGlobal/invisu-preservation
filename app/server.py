@@ -107,7 +107,7 @@ def health():
         conn = db()
         n = conn.execute("SELECT COUNT(*) FROM sheets").fetchone()[0]
         conn.close()
-    return dict(ok=ok, index=str(DB), pages=n, model=tf.BRAIN, eyes=tf.EYES, provider=tf.PROVIDER,
+    return dict(ok=ok, index=str(DB), pages=n, model=tf.BRAIN, provider=tf.PROVIDER, **{"eyes": tf.EYES, "eyes_provider": tf.PROVIDER, **archive.eyes_provenance(PROJECT)},
                 model_callable=model_disabled_reason() is None,
                 model_note=model_disabled_reason())
 
@@ -122,7 +122,7 @@ def get_set():
     finally:
         conn.close()
     return dict(name=project_name(), summary=s, pages=pages, issues=issues,
-                model=tf.BRAIN, eyes=tf.EYES, provider=tf.PROVIDER, model_note=model_disabled_reason())
+                model=tf.BRAIN, provider=tf.PROVIDER, **{"eyes": tf.EYES, "eyes_provider": tf.PROVIDER, **archive.eyes_provenance(PROJECT)}, model_note=model_disabled_reason())
 
 
 def page_payload(conn, sid: str) -> dict | None:
