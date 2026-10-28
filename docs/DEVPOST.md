@@ -7,7 +7,7 @@ Fill every `{{placeholder}}` from the real read (README Status, `docs/transcript
 
 ## Title
 
-iNViSU Preservation Reader
+INViSU Preservation Reader
 
 ## Tagline
 

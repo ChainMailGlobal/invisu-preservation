@@ -39,7 +39,7 @@ from . import tokenfactory as tf
 OUTCOMES = ("ANSWERED", "ANSWERED_FROM_MEMORY", "NOT_IN_THE_SET", "UNKNOWN_ENTITY")
 PAGE_RE = re.compile(r"\bPG-(\d{2})\b")
 
-SYSTEM = """You are the reading agent for one Library of Congress Historic American Buildings Survey (HABS) drawing set, indexed by iNViSU. The EVIDENCE PACK below is everything that has been read from the set: a page inventory, typed cross-references, the cross-reference check, text-search hits for the question, and the full transcribed text of the pages, in reading order. Pages are identified as PG-NN; measured-drawing sheets also carry the HABS sheet number lettered on them.
+SYSTEM = """You are the reading agent for one Library of Congress Historic American Buildings Survey (HABS) drawing set, indexed by INViSU. The EVIDENCE PACK below is everything that has been read from the set: a page inventory, typed cross-references, the cross-reference check, text-search hits for the question, and the full transcribed text of the pages, in reading order. Pages are identified as PG-NN; measured-drawing sheets also carry the HABS sheet number lettered on them.
 
 You must answer with exactly ONE of four outcomes:
 
