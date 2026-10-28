@@ -99,7 +99,7 @@ async function load(){
   S.pages = d.pages; S.byId = Object.fromEntries(d.pages.map(p=>[p.id,p]));
   const s = d.summary;
   $('setname').textContent = `${d.name} · ${s.pages} pages: ${s.documents} documents, ${s.sheets} sheets, ${s.photos} photographs · ${s.texts} text entries (${s.texts_eyes} read from scans)`;
-  $('models').textContent = `eyes ${d.eyes.split('/')[1]} · brain ${d.eyes && d.model.split('/')[1]} · Nebius Token Factory` + (d.model_note ? ` · ${d.model_note}` : '');
+  $('models').textContent = `eyes ${d.eyes.split('/')[1]} · brain ${d.model.split('/')[1]} · Nebius Token Factory` + (d.model_note ? ` · ${d.model_note}` : '');
   for (const ex of EXAMPLES){ const c=document.createElement('span'); c.className='chip'; c.textContent=ex; c.onclick=()=>{$('q').value=ex; ask();}; $('examples').appendChild(c); }
   renderList();
   const first = S.pages.find(p=>p.kind==='sheet' && p.texts>0) || S.pages.find(p=>p.kind==='sheet') || S.pages[0];

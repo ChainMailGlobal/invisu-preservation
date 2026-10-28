@@ -34,26 +34,5 @@ fi
 hf auth whoami >/dev/null 2>&1 || { echo "not logged in: run 'hf auth login' first" >&2; exit 1; }
 
 echo "== create Space $SPACE (docker) if missing"
-hf repo create "$SPACE" --repo-type space --space-sdk docker --exist-ok 2>/dev/null \
-  || hf repo create "$SPACE" --repo-type space --space_sdk docker 2>/dev/null \
-  || echo "   (create skipped — Space may already exist)"
-
-echo "== upload working tree"
-hf upload "$SPACE" . . --repo-type space \
-  --exclude ".git/*" --exclude ".env" --exclude "__pycache__/*" --exclude "*/__pycache__/*" \
-  --exclude "*.pyc" --exclude "runs/*" --exclude "*.log" \
-  --commit-message "deploy $(date -u +%Y-%m-%dT%H:%MZ)"
-
-if [ -n "$KEY" ]; then
-  echo "== set Space secret TOKEN_FACTORY_API_KEY"
-  HF_SPACE_ID="$SPACE" TF_KEY="$KEY" python - <<'EOF'
-import os
-from huggingface_hub import add_space_secret
-add_space_secret(os.environ["HF_SPACE_ID"], "TOKEN_FACTORY_API_KEY", os.environ["TF_KEY"])
-print("   secret set")
-EOF
-else
-  echo "== no TOKEN_FACTORY_API_KEY in env or .env — the Space will run index-only until the secret is set"
-fi
-
-echo "== done: https://huggingface.co/spaces/$SPACE  (first build takes a few minutes)"
+hf repo create "$SPACE" --repo-type space --space-sdk docker 
+  || echo "   (create skipped - the Space already exists)"
