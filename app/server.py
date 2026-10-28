@@ -44,7 +44,7 @@ CACHE = Path(os.environ.get("RENDITION_CACHE", tempfile.gettempdir())) / "invisu
 THUMB_W = 220
 ASK_TIMEOUT_S = 480
 
-app = FastAPI(title="INViSU Preservation Reader")
+app = FastAPI(title="iNViSU Preservation Reader")
 app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
 
 
