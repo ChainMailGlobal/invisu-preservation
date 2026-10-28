@@ -46,6 +46,18 @@ class SpendCapReached(RuntimeError):
     """The ledger total passed TF_CAP_USD — stop everything, report."""
 
 
+class NoApiKey(RuntimeError):
+    """TOKEN_FACTORY_API_KEY is not set anywhere we look."""
+
+
+def has_key() -> bool:
+    try:
+        api_key()
+        return True
+    except NoApiKey:
+        return False
+
+
 def api_key() -> str:
     key = os.environ.get("TOKEN_FACTORY_API_KEY", "").strip()
     if not key:
@@ -56,8 +68,8 @@ def api_key() -> str:
                 if line.startswith("TOKEN_FACTORY_API_KEY="):
                     key = line.split("=", 1)[1].strip().strip('"').strip("'")
     if not key:
-        raise SystemExit("TOKEN_FACTORY_API_KEY not set (export it or copy "
-                         ".env.example to .env)")
+        raise NoApiKey("TOKEN_FACTORY_API_KEY not set (export it or copy "
+                       ".env.example to .env)")
     return key
 
 

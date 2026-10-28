@@ -295,7 +295,7 @@ def main():
             sample = "; ".join(sp[0] for sp in s2["spans"][:6])
             print(f"[{pg}] {len(s2['spans'])} texts · title={s2.get('title')!r}\n"
                   f"      e.g. {sample[:220]}", flush=True)
-    except (tf.CreditsExhausted, tf.SpendCapReached) as e:
+    except (tf.CreditsExhausted, tf.SpendCapReached, tf.NoApiKey) as e:
         print(f"STOP: {e}", flush=True)
         print(tf.cost_line())
         sys.exit(2)

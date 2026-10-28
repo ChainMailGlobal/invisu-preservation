@@ -230,7 +230,7 @@ def main():
     try:
         r = ask(a.project_dir, a.question, a.sheet, thinking=a.thinking,
                 budget=a.budget, dry_run=a.dry_run)
-    except (tf.CreditsExhausted, tf.SpendCapReached) as e:
+    except (tf.CreditsExhausted, tf.SpendCapReached, tf.NoApiKey) as e:
         print(f"STOP: {e}")
         sys.exit(2)
     if a.dry_run:

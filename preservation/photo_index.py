@@ -91,7 +91,7 @@ def main():
             print(f"[{pg}] {str(d.get('kind')):9} {str(d.get('subject'))[:34]:34} "
                   f"q{d.get('quality')}  {reply['usage'].get('prompt_tokens', 0)} in / "
                   f"{reply['usage'].get('completion_tokens', 0)} out", flush=True)
-    except (tf.CreditsExhausted, tf.SpendCapReached) as e:
+    except (tf.CreditsExhausted, tf.SpendCapReached, tf.NoApiKey) as e:
         print(f"STOP: {e}")
         sys.exit(2)
     print(f"DONE captioned={len(rows)}")
