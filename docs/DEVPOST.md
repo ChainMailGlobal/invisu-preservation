@@ -50,7 +50,7 @@ several redrawn from 1903 plans, and 57 photographs). Ask it a question.
 - "where is the throne room" → **ANSWERED**, with the pages it relied on as
   clickable receipts; the lettering it used is boxed on the sheet
 - "which sheets show the Richards Street elevation" → the sheets, with receipts
-- "what does sheet 12 reference" → the typed cross-references on that sheet,
+- "what does HABS sheet 12 reference" → the typed cross-references on that sheet,
   and what the cross-reference check says about them
 - a question the set does not answer → **NOT IN THE SET**, with the pages it
   checked
@@ -61,25 +61,39 @@ unknown entity. Receipts are verified in code: a cited page that is not in the
 index is flagged and the answer is marked unverified. Numbers, areas, dates and
 sheet numbers are never estimated.
 
-Read by the model, not typed by us: {{N_TEXT_ENTRIES}} text entries and
-{{N_TITLES}} sheet titles across the 23 scanned sheets.
+Read by the model, not typed by us: 1,818 text entries and
+23 sheet titles across the 23 scanned sheets.
 
 ## How we built it
 
-Everything runs on **Nebius Token Factory** and every model is an **NVIDIA
-Nemotron** open model:
+Every model is an **NVIDIA Nemotron** open model and every call goes to Nebius,
+through one OpenAI-compatible client that is repointed by environment variables.
+The entry was designed for **Token Factory** (Nemotron-3.5-Super-VL as the eyes,
+Nemotron-3-Ultra as the brain). On build night Token Factory answered
+`402 credit_balance_exhausted`, so the live run you see in the video and in
+`docs/transcripts/` was served by us on **Nebius AI Cloud Serverless AI**: one
+endpoint, one **NVIDIA L40S (48 GB)**, the stock `vllm/vllm-openai:v0.20.0`
+image, and **`nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8`** in both
+seats. NVIDIA's model card names a single L40S as that build's minimum GPU. It
+is.
 
-- **`nvidia/Nemotron-3.5-Super-VL`** is the eyes. Each scanned sheet (1-bit TIFF
-  from loc.gov, rendered to PNG) goes to the model once with a STRICT-JSON
-  prompt: title, 2–4 sentence description, every legible text with a box in
-  image fractions. Box scales are normalized (the model may answer in
-  fractions, percent or pixels), truncated JSON is salvaged at the last complete
-  item, and junk boxes are detected so a bad page is re-read, not indexed.
-- **`nvidia/Nemotron-3-Ultra-550b-a55b`** is the brain. For each question the
-  index builds an evidence pack — page inventory, typed references, the
-  cross-reference check, term hits, then the full text of every page in evidence
-  order under a character budget (anything dropped is named) — and the model
-  must answer in one of the four outcomes with `[PG-NN]` receipts.
+- **Eyes.** Each scanned sheet (1-bit TIFF from loc.gov, rendered to PNG,
+  1,400 px on the long side) goes to the model once with a STRICT-JSON prompt:
+  title, 2–4 sentence description, every legible text with a box. A second
+  pass re-reads each sheet in four higher-resolution quadrants. Box scales are
+  normalized (the model answers in fractions, percent or pixels, sometimes
+  mixed inside one box), truncated JSON is salvaged at the last complete item,
+  a repetition loop is cut at its onset and flagged, and junk boxes are detected
+  so a bad page is re-read, not indexed.
+- **Brain.** For each question the index builds an evidence pack — page
+  inventory, typed references, the cross-reference check, term hits, then the
+  full text of every page in evidence order under a character budget (anything
+  dropped is named) — and the model must answer in one of the four outcomes
+  with `[PG-NN]` receipts. Reasoning mode is on; the endpoint has no reasoning
+  parser, so the thinking arrives inline and the agent parses the last outcome
+  block. Nemotron-3-Ultra on Token Factory takes this seat unchanged the moment
+  credits exist; every transcript names the model and the surface that
+  answered.
 - The index is SQLite: `sheets`, `texts` (vector words from the PDFs, model
   transcriptions from the scans, photo captions), `findings` (typed "SEE SHEET
   N" references mapped through each sheet's own "SHEET N OF 22" lettering) and
@@ -97,22 +111,33 @@ repository (MIT).
 
 ## Challenges
 
-- **The vision model we had used was removed.** Our August reader ran on
-  `nvidia/Nemotron-3-Nano-Omni`; by October it was gone from `GET /v1/models`
-  with no deprecation we saw. We moved to Nemotron-3.5-Super-VL and had to
-  re-verify everything: JSON compliance, box scale, whether it needs
-  `chat_template_kwargs.enable_thinking=false` the way Omni did
-  ({{SUPER_VL_THINKING_FINDING}}).
+- **The vision model we had used was removed, then came back under our own
+  control.** Our August reader ran Nemotron-3-Nano-Omni on Token Factory; by
+  October that id was gone from `GET /v1/models` with no deprecation we saw. We
+  rewrote for Nemotron-3.5-Super-VL, then could not call it (402). The fix was
+  to serve the Omni weights ourselves on AI Cloud: same model family, now
+  pinned by us, on a GPU billed by the second.
 - **Hand lettering on 400-dpi 1-bit scans.** A 9,360×7,584 px sheet has to be
   downsampled for the wire; small lettering goes first. We read at 1,400 px and
-  keep a quadrant pass for sheets whose read is thin. {{SUPER_VL_QUALITY_NOTE}}
+  add a quadrant pass. At 1,400 px Omni read every sheet title and 21 of 23
+  sheets' own "SHEET N OF 22" numbers; the quadrant pass is what catches the
+  small notes, and it also produces cut words at quadrant edges.
+- **Three model behaviours, found by reading the output, not the logs.** (1) At
+  temperature 0 the first sheet locked into repeating one dimension string
+  eighty times until the token ceiling; `repetition_penalty 1.05` cured it and
+  a loop guard now cuts and flags any recurrence. (2) The quadrant prompt gets a
+  bare JSON array back instead of the requested object; the first parser
+  silently dropped all 92 replies and reported "+0" per sheet. Zero is a result
+  that has to be read. (3) Boxes can mix pixels and fractions inside one box.
+  All three are handled in `read_scans.py` and reported in the feedback below.
 - **Credits.** On the night we started the build the Token Factory account
   answered `402 credit_balance_exhausted` on the first call — and so did the
   separate Nebius AI Studio pot. We built everything that needs no model call
-  (ingest, index, agent, app, Space packaging) and wrote a resume runbook, then
-  finished the read once credits were live. The app degrades on purpose: with
-  no model it still searches the index and labels the model unavailable rather
-  than failing.
+  (ingest, index, agent, app, Space packaging), then found $9.78 on the AI
+  Cloud balance, which bills GPU-seconds, not tokens. One preemptible L40S
+  endpoint at $0.77 an hour read the whole set. The app degrades on purpose:
+  with no model it still searches the index and labels the model unavailable
+  rather than failing.
 - **Not inventing.** A reasoning model will happily cite "sheet 9" because it
   sounds right. The four-outcome contract plus code-side receipt verification is
   what makes the refusal ("not in the set") a real outcome instead of a prompt
@@ -156,12 +181,21 @@ cannot do.
   verification. An answer whose receipt fails verification is shown as
   unverified, not hidden — and the model can still be wrong inside a page that
   verifies.
-- Photo captions come from an earlier read on a model since removed from the
-  Token Factory catalog (Nemotron-3-Nano-Omni); they were not re-read.
+- Photo captions come from the August read on Token Factory (Nemotron-3-Nano-
+  Omni, since removed from that catalog); they were not re-read.
+- The live run's brain is a 30B-A3B model on one L40S, not Nemotron-3-Ultra.
+  It answered with verified receipts, but on "where is the throne room" it
+  cited the interior sheets and missed the floor plan that places the room. A
+  larger brain is the design, not a claim.
+- Quadrant re-reads produce cut words at quadrant edges ("CENTR", "SEE SH");
+  they are indexed as read.
 - Not built for accessibility; no claim is made.
-- Failure cases surfaced by the real read: {{FAILURE_CASES — e.g. sheets that
-  returned junk boxes and were re-read with the quadrant pass, sheets whose JSON
-  was truncated and salvaged, titles the model misread}}.
+- Failure cases surfaced by the real read: sheet 11's repetition loop (cut at
+  entry 20 before the penalty existed); 92 quadrant replies in bare-array form
+  that the first parser dropped; mixed-scale boxes; sheets 6 and 18 without a
+  readable self-number (the cover sheet, and "Elevations with temporary
+  additions"); seven typed references to a sheet 22 that this LOC record does
+  not contain, reported as issues rather than resolved by guessing.
 
 ## What's next
 
@@ -182,22 +216,48 @@ let a cost cap be enforced on the client side. (3) Pricing for
 `Nemotron-3.5-Super-VL` and `Nemotron-3-Ultra-550b-a55b` is not
 machine-readable from the API or an unauthenticated page; a `pricing` field on
 `/v1/models` would let ledgers compute dollars without a human copying numbers.
-(4) Latency: {{TF_LATENCY_NOTE — median seconds per 1,400-px sheet read on Super-VL
-and per ~30k-token Ultra question, from the ledger}}. (5) What worked: the
-OpenAI-compatible surface meant the whole project is `urllib` and JSON; no SDK.
+(4) What worked: the OpenAI-compatible surface meant the whole project is
+`urllib` and JSON; no SDK, and the same client moved to AI Cloud by changing
+four environment variables.
 
-**NVIDIA Nemotron.** (1) Super-VL on hand lettering: {{SUPER_VL_BEHAVIOUR —
-JSON compliance, whether enable_thinking=false was needed, box scale it chose,
-transcription quality vs. the earlier Omni read}}. (2) Ultra's adherence to a
-four-outcome contract: {{ULTRA_OUTCOME_NOTE — did it ever cite a page not in the
-pack, did NOT_IN_THE_SET fire cleanly, reasoning tokens used}}. (3) A request: a
-documented, stable JSON mode (or `response_format` support) on the VL model
-would remove the truncated-JSON salvage code entirely. (4) A documentation note
-on the chat template — which Nemotron ids honor `enable_thinking` and what the
-default is — would have saved a test call per model.
+**Nebius AI Cloud Serverless AI** (the surface that actually ran the entry).
+(5) It worked, from a browser, with no Nebius CLI (there is no Windows build;
+the install script covers Ubuntu and macOS): a custom endpoint with the stock
+vLLM image, a bearer token from SecretStash, one L40S, public static IP.
+Status reached `Running` about five minutes after creation; vLLM served about
+27 minutes after creation, the rest being the 35 GB download. Per-second
+billing; the console estimate for a preemptible L40S was $0.77 an hour.
+(6) "Running" means the container, not the model. For 22 minutes the tunnel
+answered 404 then 503 while vLLM downloaded; a readiness signal distinct from
+container state, or the model's own `/health` surfaced in the console, would
+remove the guesswork. (7) Every restart re-downloads the weights into the
+container disk; a mountable Hugging Face cache volume, or a "pull model to
+volume" step, would cut restarts from ~25 minutes to ~2. (8) Serverless AI has
+no row on the public price page; the console estimate is the only number.
+(9) Latency on one L40S, from the ledger: {{TF_LATENCY_NOTE — median seconds
+per full-sheet read, per quadrant, and per ~21k-token question}}.
+
+**NVIDIA Nemotron.** (1) Nemotron 3 Nano Omni (FP8) on hand lettering, served
+by vLLM: `enable_thinking` via `chat_template_kwargs` is honored; with it off
+the model returns clean STRICT-JSON for the full-sheet prompt and read every
+sheet title and 21 of 23 self-numbers at 1,400 px. Three behaviours needed
+code: a repetition loop at temperature 0 (fixed by `repetition_penalty 1.05`),
+a bare JSON array instead of the requested object on the quadrant prompt, and
+boxes that mix pixel and fraction scales. The model card's "minimum GPU (FP8):
+1× L40S 48GB" held at a 65,536-token context. (2) Adherence to the four-outcome
+contract with reasoning on: {{OMNI_OUTCOME_NOTE — invented page ids across all
+runs, NOT_IN_THE_SET result, inline reasoning length}}. Without a reasoning
+parser the thinking arrives inline before the answer; parsing from the last
+outcome block made it usable, and a 900-token ceiling was not enough once
+thinking was on. (3) A request: a documented, stable JSON mode (or
+`response_format` support) on the VL models would remove the salvage code
+entirely. (4) A documentation note on the chat template — which Nemotron ids
+honor `enable_thinking` and what the default is — would have saved a test call
+per model.
 
 ## Built with
 
-Python, FastAPI, SQLite, PyMuPDF, Pillow, Nebius Token Factory, NVIDIA
-Nemotron-3.5-Super-VL, NVIDIA Nemotron-3-Ultra-550b-a55b, Hugging Face Spaces
-(Docker), Library of Congress HABS/HAER (public domain).
+Python, FastAPI, SQLite, PyMuPDF, Pillow, Nebius AI Cloud Serverless AI (L40S
+endpoint), vLLM, Nebius Token Factory, NVIDIA Nemotron-3-Nano-Omni-30B-A3B
+(FP8), NVIDIA Nemotron-3.5-Super-VL and Nemotron-3-Ultra (design target),
+Hugging Face Spaces (static), Library of Congress HABS/HAER (public domain).

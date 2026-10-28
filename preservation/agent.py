@@ -85,6 +85,28 @@ def evidence_pack(conn: sqlite3.Connection, question: str, sheet_id: str | None 
     lines += ["", f"CROSS-REFERENCE CHECK: {len(issues)} unresolved"]
     lines += [f"  - {m}" for m in issues]
 
+    # Pages the question names ("HABS sheet 12", "sheet 12", "PG-19") are
+    # resolved through the inventory and their typed links listed up front, so
+    # a reference question is answered from the lettering, not from guesswork.
+    named: list[str] = []
+    for n in re.findall(r"\bsheet\s*(?:no\.?\s*)?(\d{1,3})\b", question, re.I):
+        for sid, (kind, habs, title) in inv.items():
+            if str(habs) == n and sid not in named:
+                named.append(sid)
+    for n in PAGE_RE.findall(question.upper()):
+        if f"PG-{n}" in inv and f"PG-{n}" not in named:
+            named.append(f"PG-{n}")
+    if named:
+        lines += ["", "PAGES NAMED IN THE QUESTION (resolved through the inventory):"]
+        for sid in named:
+            kind, habs, title = inv[sid]
+            on = [f"'{t}' -> {tgt or 'unresolved'}" for s_, t, tgt in refs if s_ == sid]
+            back = [f"{s_}: '{t}'" for s_, t, tgt in refs if tgt == sid]
+            lines.append(f"  {sid} · {kind}" + (f" · HABS sheet {habs}" if habs else "")
+                         + (f" · {title}" if title else ""))
+            lines.append("    typed references ON this page: " + ("; ".join(on) if on else "none read"))
+            lines.append("    pages that reference it: " + ("; ".join(back) if back else "none"))
+
     lines += ["", "TEXT SEARCH for the question's terms:"]
     combined: dict[str, int] = {}
     for root in archive.search_terms(question):
@@ -107,6 +129,9 @@ def evidence_pack(conn: sqlite3.Connection, question: str, sheet_id: str | None 
     ordered = []
     if sheet_id and sheet_id.upper() in all_pages:
         ordered.append(sheet_id.upper())
+    for sid in named:
+        if sid in all_pages and sid not in ordered:
+            ordered.append(sid)
     for sid in sorted(combined, key=lambda x: -combined[x]):
         if sid in all_pages and sid not in ordered:
             ordered.append(sid)
@@ -140,8 +165,13 @@ def parse_reply(text: str, known_pages: set[str]) -> dict:
     # blocks and parse from the LAST "OUTCOME:"; what precedes it is counted
     # as inline reasoning, never shown as the answer.
     body = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
+    inline_reasoning = 0
+    if "</think>" in body:          # the chat template opened the tag; only the close is in the output
+        head, _, body = body.rpartition("</think>")
+        inline_reasoning = len(head.strip())
     k = body.rfind("OUTCOME:")
-    inline_reasoning = len(body[:k].strip()) if k > 0 else 0
+    if k > 0:
+        inline_reasoning += len(body[:k].strip())
     if k >= 0:
         body = body[k:]
     outcome = None
@@ -222,8 +252,30 @@ def ask(pdir, question: str, sheet_id: str | None = None, *, thinking="auto",
     if err:
         result.update(error=err)
         return result
-    result.update(parse_reply(reply["text"], known))
-    result.update(raw=reply["text"], reasoning_chars=len(reply["reasoning"]),
+    parsed = parse_reply(reply["text"], known)
+    raw = reply["text"]
+    if parsed["outcome"] is None and reply["finish"] == "stop":
+        # The model answered but skipped the OUTCOME line (it happens with the
+        # 30B brain). Ask it to state the outcome itself rather than inferring
+        # one in code; the second call is short, reasoning off, and recorded.
+        follow = messages + [{"role": "assistant", "content": raw},
+                             {"role": "user", "content":
+                              "Your reply is missing the OUTCOME line. Repeat your answer in exactly "
+                              "the required form (OUTCOME / ANSWER / RECEIPTS), content unchanged."}]
+        r2, err2 = tf.chat(tf.BRAIN, follow, max_tokens=400, temperature=0,
+                           extra={"chat_template_kwargs": {"enable_thinking": False}},
+                           purpose=f"agent outcome line: {question[:50]}", timeout=120)
+        if not err2:
+            p2 = parse_reply(r2["text"], known)
+            if p2["outcome"] is not None:
+                parsed = p2
+                parsed["notes"] = parsed.get("notes", []) + ["outcome line stated in a second call"]
+                raw += "\n\n--- second call (outcome line requested) ---\n" + r2["text"]
+                reply["latency_s"] = round(reply["latency_s"] + r2["latency_s"], 1)
+                for k_ in ("prompt_tokens", "completion_tokens", "total_tokens"):
+                    reply["usage"][k_] = reply["usage"].get(k_, 0) + r2["usage"].get(k_, 0)
+    result.update(parsed)
+    result.update(raw=raw, reasoning_chars=len(reply["reasoning"]),
                   usage=reply["usage"], usd=reply["usd"], latency_s=reply["latency_s"],
                   finish=reply["finish"])
     return result

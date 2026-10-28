@@ -15,19 +15,26 @@ Built by [iNViSU AI](https://github.com/ChainMailGlobal) for the
 
 ## Nebius + NVIDIA usage
 
-Every model call in this repository goes to **Nebius Token Factory**
-(`https://api.tokenfactory.nebius.com/v1`) and every model is an **NVIDIA
-Nemotron** open model:
+Every model call in this repository goes to Nebius and every model is an
+**NVIDIA Nemotron** open model. One OpenAI-compatible client,
+`preservation/tokenfactory.py`, is the only network code; it is repointed by
+environment variables, writes one ledger line per call (tokens, latency,
+dollars, provider) to `docs/cost_ledger.jsonl`, enforces a hard spend cap and
+stops on HTTP 402.
 
-| Seat | Model (Token Factory id) | Job |
-|---|---|---|
-| Eyes | `nvidia/Nemotron-3.5-Super-VL` | reads each scanned sheet: title, description, every legible piece of hand lettering with a box; captions the photographs |
-| Brain | `nvidia/Nemotron-3-Ultra-550b-a55b` | answers a question over the evidence pack built from the index, with page receipts, in one of four allowed outcomes |
+| Seat | Designed for (Token Factory) | What ran the live demo (Nebius AI Cloud, one L40S) | Job |
+|---|---|---|---|
+| Eyes | `nvidia/Nemotron-3.5-Super-VL` | `nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8` | reads each scanned sheet: title, description, every legible piece of hand lettering with a box |
+| Brain | `nvidia/Nemotron-3-Ultra-550b-a55b` | the same Omni endpoint, reasoning mode on | answers a question over the evidence pack built from the index, with page receipts, in one of four allowed outcomes |
 
-There is no other inference provider, no GPU and no training in this project.
-`preservation/tokenfactory.py` is the only network client: it writes one
-ledger line per call (tokens, latency, dollars) to `docs/cost_ledger.jsonl`,
-enforces a hard spend cap (`TF_CAP_USD`, default $5) and stops on HTTP 402.
+Why two columns: on build night Token Factory answered `402
+credit_balance_exhausted`, so the set was read on a **Nebius AI Cloud
+Serverless AI endpoint** we created in the console — the stock
+`vllm/vllm-openai:v0.20.0` image serving the Omni FP8 weights on one
+preemptible NVIDIA L40S (48 GB, $0.77/hour on the console estimate). NVIDIA's
+model card names a single L40S as that build's minimum GPU. Same client, same
+JSON contract, same ledger: `docs/RUN_AI_CLOUD_ENDPOINT.md` is the recipe.
+There is no other inference provider and no training in this project.
 
 ## Demo set: Iolani Palace, Honolulu (HABS No. HI-1, loc.gov record hi0047)
 
@@ -42,7 +49,7 @@ No. HI-1). The set as indexed here is **85 pages**:
 
 Questions the demo is built to answer, each with sheet receipts:
 *where is the throne room* · *which sheets show the Richards Street elevation*
-· *what does sheet 12 reference* — and a question whose answer is not in the
+· *what does HABS sheet 12 reference* — and a question whose answer is not in the
 set, which must come back as **NOT IN THE SET**.
 
 ## How it works
@@ -50,7 +57,8 @@ set, which must come back as **NOT IN THE SET**.
 ```
 loc.gov files ──> ingest ──> pages N.png + N.scene.json
                               │
-          Nemotron-3.5-Super-VL (Token Factory) reads each scanned sheet
+          Nemotron eyes (Omni on a Nebius AI Cloud endpoint; Super-VL on
+          Token Factory by design) read each scanned sheet, then four quadrants
                               │  title · description · every text with a box
                               ▼
                  type_refs: "SHEET 7 OF 22" self-numbers,
@@ -62,7 +70,8 @@ loc.gov files ──> ingest ──> pages N.png + N.scene.json
    question ──> evidence pack (inventory · references · check · term hits ·
                 full text of every page in evidence order, under a budget)
                               ▼
-          Nemotron-3-Ultra (Token Factory) ──> ONE of four outcomes
+          Nemotron brain (Omni, reasoning on; Ultra on Token Factory by
+          design) ──> ONE of four outcomes, receipts verified in code
 ```
 
 The four outcomes the agent may return — and nothing else:
@@ -93,15 +102,26 @@ cp .env.example .env            # put your Token Factory key in TOKEN_FACTORY_AP
 A Token Factory key comes from https://tokenfactory.nebius.com. The `.env`
 file is git-ignored; the key is read from the environment or from `.env`.
 
+To run against a Nemotron you serve yourself on a Nebius AI Cloud Serverless
+endpoint (the way the demo was read), set these instead — nothing else changes:
+
+```bash
+export TOKEN_FACTORY_BASE_URL="https://<your endpoint>/v1"
+export INFERENCE_API_KEY="<the endpoint's bearer token>"
+export INFERENCE_PROVIDER="ai-cloud-l40s"            # written on every ledger row
+export EYES_MODEL="nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8"
+export BRAIN_MODEL="$EYES_MODEL"
+```
+
 ## Run
 
 Ask the demo set (the index is in the repo; the first three questions need
 the scanned sheets read, see Status):
 
 ```bash
-python -m preservation.agent data/iolani-palace "where is the throne room"
-python -m preservation.agent data/iolani-palace "which sheets show the Richards Street elevation"
-python -m preservation.agent data/iolani-palace "what does sheet 12 reference" --save docs/transcripts/sheet12.md
+python -m preservation.agent data/iolani-palace "where is the throne room" --thinking on --max-tokens 4000
+python -m preservation.agent data/iolani-palace "which sheets show the Richards Street elevation" --thinking on --max-tokens 4000
+python -m preservation.agent data/iolani-palace "what does HABS sheet 12 reference" --thinking on --max-tokens 4000 --save docs/transcripts/sheet12.md
 python -m preservation.agent data/iolani-palace "where is the throne room" --dry-run   # prints the evidence pack, no model call
 ```
 
@@ -114,9 +134,11 @@ python -m preservation.ingest hi0047data.pdf  data/iolani-palace
 for f in sheet_000*.tif; do python -m preservation.ingest "$f" data/iolani-palace; done
 for f in *pv.jpg;        do python -m preservation.ingest "$f" data/iolani-palace; done
 
-# 2. eyes: read one sheet first and look at what came back, then the rest
-python -m preservation.read_scans data/iolani-palace --only 11
-python -m preservation.read_scans data/iolani-palace
+# 2. eyes: read one sheet first and LOOK at what came back, then the rest, then quadrants
+#    (--rep-penalty 1.05 stops Omni's repetition loop at temperature 0; --thinking off)
+python -m preservation.read_scans data/iolani-palace --only 11 --thinking off --rep-penalty 1.05 --max-tokens 6000
+python -m preservation.read_scans data/iolani-palace --thinking off --rep-penalty 1.05 --max-tokens 6000
+python -m preservation.read_scans data/iolani-palace --tiles --thinking off --rep-penalty 1.05
 python -m preservation.photo_index data/iolani-palace          # captions the photographs
 
 # 3. references + index
@@ -160,51 +182,47 @@ python -m preservation.export_static   # data/ + index.db -> site/ (JSON, images
 ./deploy_space.sh                      # hf repo create (static) + hf upload site/ — needs `hf auth login`
 ```
 
-The full app — Nemotron-3.5-Super-VL reading, Nemotron-3-Ultra answering via
-Nebius Token Factory — runs locally with `uvicorn` (above) or anywhere the
-`Dockerfile` runs. The UI is one file that detects which mode it is in.
+The full app — Nemotron reading and answering through the client above — runs
+locally with `uvicorn` (above) or anywhere the `Dockerfile` runs. The UI is one
+file that detects which mode it is in.
 
 ## Cost
 
-`docs/cost_ledger.jsonl` holds one line per model call. Token counts come from
-the API response; dollars are computed from the `PRICES` table in
-`preservation/tokenfactory.py`. Prices for the two models used here were not
-yet confirmed from the Token Factory price list at the time of writing, so the
-ledger records tokens and leaves `usd` null until the table is filled in —
-the cost line never invents a number.
+`docs/cost_ledger.jsonl` holds one line per model call (tokens, latency,
+provider) plus `gpu_session` lines for self-served endpoints (lifetime in
+minutes × the hourly rate; the GPU bills from creation to deletion, not per
+call). Token Factory dollars come from the `PRICES` table in
+`preservation/tokenfactory.py`; entries left `None` make the ledger record
+`usd: null` rather than a guessed number. `python -m preservation.tokenfactory`
+prints the cost line; `--gpu-session NAME --rate R --minutes M` records an
+endpoint's lifetime.
 
-## Status — 2026-10-27
+## Status — 2026-10-28
 
-Done and verified locally:
+Done and verified, from the committed ledger and index:
 
 - ingest of the LOC files: 5 PDF pages with 860 vector words, 23 scanned sheets
-  (lossless 1-bit PNG), 57 photographs with captions from an earlier pass
-- index built: 85 pages, typed-reference pass, cross-reference check, agent
-  evidence pack (`--dry-run`)
-- the Token Factory client, ledger and cap; both model ids confirmed present
-  on `GET /v1/models`
-- web app (FastAPI + one page) tested against the committed index with the
-  model unavailable; thumbnails and 2400 px view renditions committed
+  (lossless 1-bit PNG), 57 photographs with captions from the August pass
+- **all 23 scanned sheets read** by Nemotron-3-Nano-Omni (FP8) on one L40S:
+  every full-sheet call finished on `stop`, every sheet has a title, 21 of 23
+  carry their own "SHEET N OF 22" number; 1,818 text entries from
+  the scans after the quadrant pass, 47 typed cross-references, 7
+  unresolved (all "SEE SHEET 22" — this LOC record has no sheet 22)
+- the four agent transcripts in `docs/transcripts/`, reasoning mode on,
+  receipts verified against the index: {{TRANSCRIPT_SUMMARY}}
+- web app (FastAPI + one page) run against the live endpoint; thumbnails and
+  2400 px view renditions committed
 - static demo exported and deployed to a free Hugging Face static Space:
   https://cre808ive-invisu-preservation.static.hf.space/ (browse, search, deep links;
   no model call); `Dockerfile` kept for running the full app elsewhere
+- endpoint time: {{GPU_MINUTES}} minutes of one preemptible L40S, {{GPU_USD}}
+  on the console rate; {{N_CALLS}} model calls, {{N_TOKENS}} tokens
 
-Blocked — the Token Factory account answered **HTTP 402
-`credit_balance_exhausted`** on the first chat call (the smallest model fails
-the same way, so it is the account, not the model; the Nebius AI Studio key
-answers 402 as well). Until credits are added:
-
-- the 23 scanned sheets have **no transcription yet** (the `texts` table has
-  zero `eyes` rows); searches over the drawings return only photo captions and
-  the PDF pages
-- the agent has **not** been run against Nemotron-3-Ultra; the four
-  transcripts in `docs/transcripts/` are not there yet
-- whether Nemotron-3.5-Super-VL needs `chat_template_kwargs.enable_thinking=false`
-  is untested (`--thinking off` is one flag away)
-
-Resume, in order, once the account has credits: `read_scans --only 11`, look
-at the output, `read_scans`, `build_index`, then the four agent questions with
-`--save`.
+Not done: Token Factory still answers **HTTP 402 `credit_balance_exhausted`**
+(the Nebius AI Studio key as well), so Nemotron-3.5-Super-VL and
+Nemotron-3-Ultra — the models this repo was written for — have not been
+exercised. The moment credits exist, the same four questions run on Ultra with
+`INFERENCE_PROVIDER=token-factory`; the transcripts say which model answered.
 
 ## Limitations and failure cases
 
@@ -231,12 +249,22 @@ cannot do.
   verification. An answer whose receipt fails verification is shown as
   unverified, not hidden — and the model can still be wrong inside a page that
   verifies.
-- Photo captions come from an earlier read on a model since removed from the
-  Token Factory catalog (Nemotron-3-Nano-Omni); they were not re-read.
+- Photo captions come from the August read on Token Factory (Nemotron-3-Nano-
+  Omni, since removed from that catalog); they were not re-read.
+- The live run's brain is a 30B-A3B model on one L40S, not Nemotron-3-Ultra.
+  It answered with verified receipts, but on "where is the throne room" it
+  cited the interior sheets and missed the floor plan that places the room. A
+  larger brain is the design, not a claim.
+- Quadrant re-reads produce cut words at quadrant edges ("CENTR", "SEE SH");
+  they are indexed as read.
 - Not built for accessibility; no claim is made.
-- Failure cases surfaced by the real read: {{FAILURE_CASES — e.g. sheets that
-  returned junk boxes and were re-read with the quadrant pass, sheets whose JSON
-  was truncated and salvaged, titles the model misread}}.
+- Failure cases surfaced by the real read: sheet 11's repetition loop (eighty
+  copies of one dimension string until the token ceiling, before
+  `--rep-penalty` existed); 92 quadrant replies in bare-array JSON that the
+  first parser dropped, reported as "+0" per sheet; boxes mixing pixel and
+  fraction scales; sheets 6 and 18 without a readable self-number; seven typed
+  references to a sheet 22 the record does not contain, reported as issues
+  rather than resolved by guessing.
 
 ## Attribution and license
 

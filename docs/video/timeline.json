@@ -23,19 +23,19 @@
 
     {"id": "read", "pad": 0.6,
      "do": [{"select_page": "PG-14"}, {"hold": 0.8}, {"scroll": "#reading", "px": 900, "steps": 10, "step_ms": 420}],
-     "say": "Nemotron 3 Nano Omni read every scanned sheet on one L40S on Nebius AI Cloud: title, description, every legible piece of hand lettering with its position, then four quadrants of each sheet for the small notes. Across the set: {{N_TEXT_ENTRIES}} text entries and {{N_TITLES}} titles, read by the model, not typed by us."},
+     "say": "Nemotron 3 Nano Omni read every scanned sheet on one L40S on Nebius AI Cloud: title, description, every legible piece of hand lettering with its position, then four quadrants of each sheet for the small notes. Across the set: 1,818 text entries and 23 titles, read by the model, not typed by us."},
 
     {"id": "q2", "pad": 0.8,
      "do": [{"click_chip": 1}, {"wait_outcome": true}, {"hold": 0.8}, {"hover_receipts": true}],
-     "say": "Which sheets show the Richards Street elevation. Nemotron answers over the evidence pack the index builds: {{Q2_RECEIPTS_COUNT}} receipts, {{Q2_RECEIPTS}}. Receipts are verified in code against the index; a page the model cites that does not exist is flagged, not shown as fact."},
+     "say": "Which sheets show the Richards Street elevation. Nemotron answers over the evidence pack the index builds: with the sheets as receipts. Receipts are verified in code against the index; a page the model cites that does not exist is flagged, not shown as fact."},
 
     {"id": "q3", "pad": 0.8,
      "do": [{"click_chip": 2}, {"wait_outcome": true}, {"hold": 0.8}, {"click_receipt": 0}, {"hold": 0.6}],
-     "say": "What does HABS sheet 12 reference. Historic sheets cross-reference by lettering: SEE SHEET N. We type those references, so the answer is {{Q3_SUMMARY}}, and the cross-reference check reports any target that is not in the set."},
+     "say": "What does HABS sheet 12 reference. Historic sheets cross-reference by lettering: SEE SHEET N. We type those references, so the answer points at the sheet the lettering names, with that lettering as the receipt, and the cross-reference check reports any target that is not in the set."},
 
     {"id": "q4", "pad": 0.8,
-     "do": [{"type": "#q", "text": "{{Q4_NOT_IN_SET_QUESTION}}", "delay_ms": 45}, {"press": "Enter"}, {"wait_outcome": true}, {"hold": 1.0}],
-     "say": "And the question every archive tool gets wrong. {{Q4_SHORT}}. The set does not say, so Nemotron answers: not in the set, with the pages it checked. Four outcomes, nothing else: answered with receipts, answered from memory with its date, not in the set, unknown entity."},
+     "do": [{"type": "#q", "text": "what wood species is the central stair balustrade", "delay_ms": 45}, {"press": "Enter"}, {"wait_outcome": true}, {"hold": 1.0}],
+     "say": "And the question every archive tool gets wrong. What wood is the central stair balustrade. The set does not say, so Nemotron answers: not in the set, with the pages it checked. Four outcomes, nothing else: answered with receipts, answered from memory with its date, not in the set, unknown entity."},
 
     {"id": "open", "pad": 0.4,
      "do": [{"overlay": "runs/video/shot_github.png"}, {"hold": 5.5}, {"overlay": "runs/video/shot_space.png"}, {"hold": 3.0}, {"overlay_off": true}],

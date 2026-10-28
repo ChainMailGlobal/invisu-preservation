@@ -76,7 +76,7 @@ content, keep them.
 ```bash
 python -m preservation.agent data/iolani-palace "where is the throne room" --save docs/transcripts/throne_room.md
 python -m preservation.agent data/iolani-palace "which sheets show the Richards Street elevation" --save docs/transcripts/richards_street.md
-python -m preservation.agent data/iolani-palace "what does sheet 12 reference" --save docs/transcripts/sheet12.md
+python -m preservation.agent data/iolani-palace "what does HABS sheet 12 reference" --save docs/transcripts/sheet12.md
 python -m preservation.agent data/iolani-palace "what wood species is the central stair balustrade" --save docs/transcripts/not_in_set.md
 ```
 
