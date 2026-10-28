@@ -192,10 +192,14 @@ async def ask(req: AskReq):
                     verified=False, notes=[reason], available=False)
     loop = asyncio.get_running_loop()
     thinking = os.environ.get("AGENT_THINKING", "auto")
+    # Reasoning mode without a server-side reasoning parser puts the thinking
+    # inline, so the ceiling must hold it: AGENT_MAX_TOKENS=4000 with thinking on.
+    max_tokens = int(os.environ.get("AGENT_MAX_TOKENS", "900"))
     try:
         r = await asyncio.wait_for(
             loop.run_in_executor(None, lambda: agent.ask(PROJECT, q, req.sheet_id,
-                                                         thinking=thinking)),
+                                                         thinking=thinking,
+                                                         max_tokens=max_tokens)),
             timeout=ASK_TIMEOUT_S)
     except tf.CreditsExhausted:
         reason = "model unavailable: credits (Token Factory answered HTTP 402)"
