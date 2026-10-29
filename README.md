@@ -26,6 +26,8 @@ environment variables, writes one ledger line per call (tokens, latency,
 dollars, provider) to `docs/cost_ledger.jsonl`, enforces a hard spend cap and
 stops on HTTP 402.
 
+Model ids are exactly as Token Factory's `GET /v1/models` listed them on 2026-10-27 and 2026-10-28 (the suffixes are the catalog's, not a custom build).
+
 | Seat | Designed for (Token Factory) | What ran | Job |
 |---|---|---|---|
 | Eyes | `nvidia/Nemotron-3.5-Super-VL` | `nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8` | reads each scanned sheet: title, description, every legible piece of hand lettering with a box |
@@ -224,6 +226,13 @@ Done and verified, from the committed ledger and index:
 - static demo exported and deployed to a free Hugging Face static Space:
   https://cre808ive-invisu-preservation.static.hf.space/ (browse, search, deep links;
   no model call); `Dockerfile` kept for running the full app elsewhere
+- self-review: `tools/self_review.py` scored this package against the organizers'
+  published rubric and tips with Nemotron 3 Ultra and had Nemotron 3.5 Super-VL
+  review the video frame by frame (runs kept locally). Applied from it: the
+  quote check on receipts, the Submission Period provenance statement, the
+  description leading with who it is for, the static demo pointing at the video.
+  Declined: a re-record over a header the vision model misread as "Nexus Token
+  Factory".
 - endpoint time: about 124 minutes of one preemptible L40S, about $1.59
   on the console rate; 253 model calls, 1,857,971 tokens
 

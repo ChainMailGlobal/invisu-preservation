@@ -296,6 +296,6 @@ per model.
 ## Built with
 
 Python, FastAPI, SQLite, PyMuPDF, Pillow, Nebius AI Cloud Serverless AI (L40S
-endpoint), vLLM, Nebius Token Factory, NVIDIA Nemotron-3-Nano-Omni-30B-A3B
+endpoint), vLLM (the serving engine on that endpoint, not a model), Nebius Token Factory, NVIDIA Nemotron-3-Nano-Omni-30B-A3B
 (FP8), NVIDIA Nemotron-3.5-Super-VL and Nemotron-3-Ultra (design target),
 Hugging Face Spaces (static), Library of Congress HABS/HAER (public domain).
