@@ -90,8 +90,10 @@ The four outcomes the agent may return — and nothing else:
 | `NOT_IN_THE_SET` | the question is about this set but nothing read answers it; names the closest pages checked |
 | `UNKNOWN_ENTITY` | the question names a building, sheet or thing that is not this set |
 
-Receipts are verified in code, not trusted: a cited page that is not in the
-index is flagged and the result is marked unverified. Numbers, areas, dates and
+Receipts are verified in code, not trusted, in two steps: a cited page that is
+not in the index is flagged and the result is marked unverified, and every span
+the answer quotes must appear on a cited page or the result is marked
+unverified with the missing quote named. Numbers, areas, dates and
 sheet numbers are never estimated — in the `ANSWERED` outcome they may only be
 quoted from the pack.
 
@@ -271,10 +273,16 @@ cannot do.
   verifies.
 - Photo captions come from the August read on Token Factory (Nemotron-3-Nano-
   Omni, since removed from that catalog); they were not re-read.
-- The live run's brain is a 30B-A3B model on one L40S, not Nemotron-3-Ultra.
-  It answered with verified receipts, but on "where is the throne room" it
-  cited the interior sheets and missed the floor plan that places the room. A
-  larger brain is the design, not a claim.
+- Two brains are on record. The 30B Omni on one L40S answered with verified
+  receipts but, on "where is the throne room", cited the interior sheets and
+  missed the floor plan; Ultra on Token Factory, the brain in the submitted
+  video, cited the floor plan with its lettering. A verified page is not a
+  verified reading: the second check (every quoted span must appear on a
+  cited page) catches an invented quote, not a wrong one.
+- On "what does HABS sheet 12 reference" the brain answered the reverse
+  direction until the evidence pack named incoming versus outgoing links; one
+  command-line run without a page open still flipped. The reader comparison
+  is one set at one resolution and two settings; it says what was measured.
 - Quadrant re-reads produce cut words at quadrant edges ("CENTR", "SEE SH");
   they are indexed as read.
 - Not built for accessibility; no claim is made.
@@ -285,6 +293,17 @@ cannot do.
   fraction scales; sheets 6 and 18 without a readable self-number; seven typed
   references to a sheet 22 the record does not contain, reported as issues
   rather than resolved by guessing.
+
+## What existed before, and what was built during the Submission Period
+
+The page index and the cross-reference check descend from our public
+[PlanGraph](https://github.com/ChainMailGlobal/plangraph) repository (MIT,
+August 2026). Everything else in this repository was built on October 27–28,
+2026, inside the Submission Period: the Nemotron scan reader and its quadrant
+pass, the typed-reference pass, the four-outcome agent with receipt and quote
+verification, the evidence pack, the FastAPI app and its static export, the
+Nebius AI Cloud endpoint run, the Token Factory runs, the reader comparison, the
+video recorder and the self-review tool. The commit history is the record.
 
 ## Attribution and license
 

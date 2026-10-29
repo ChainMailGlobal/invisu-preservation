@@ -276,6 +276,20 @@ def ask(pdir, question: str, sheet_id: str | None = None, *, thinking="auto",
                 reply["latency_s"] = round(reply["latency_s"] + r2["latency_s"], 1)
                 for k_ in ("prompt_tokens", "completion_tokens", "total_tokens"):
                     reply["usage"][k_] = reply["usage"].get(k_, 0) + r2["usage"].get(k_, 0)
+    # Second check, suggested by our own pre-mortem: the page check catches an
+    # invented page id; this catches an invented quote. Every quoted span in the
+    # answer must appear, normalized, in the text of a cited page.
+    quotes = [q.strip() for q in re.findall(r"[“\"]([^”\"]{4,160})[”\"]", parsed.get("answer", ""))]
+    if quotes and parsed.get("receipts"):
+        def norm(s: str) -> str:
+            return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+        cited = norm(" ".join(archive.sheet_text(conn, sid, cap=400_000) or "" for sid in parsed["receipts"]))
+        missing = [q for q in quotes if norm(q) not in cited]
+        parsed["quotes_checked"], parsed["quotes_missing"] = len(quotes), missing
+        if missing:
+            parsed["notes"] = parsed.get("notes", []) + [
+                "quoted text not found on the cited pages: " + "; ".join(f"'{m[:60]}'" for m in missing)]
+            parsed["verified"] = False
     result.update(parsed)
     result.update(raw=raw, reasoning_chars=len(reply["reasoning"]),
                   usage=reply["usage"], usd=reply["usd"], latency_s=reply["latency_s"],
@@ -300,6 +314,8 @@ def transcript_md(r: dict) -> str:
              f"- Outcome: **{r.get('outcome')}** — receipts verified against the index: "
              f"**{'yes' if r.get('verified') else 'NO'}**"
              + (f" ({'; '.join(r['notes'])})" if r.get("notes") else ""),
+             f"- Quoted lettering checked against the cited pages: "
+             f"{r.get('quotes_checked', 0)} quotes, {len(r.get('quotes_missing') or [])} not found",
              "", "## Answer", "", r.get("answer", r.get("error", "")), "",
              f"Receipts: {', '.join(r.get('receipts') or []) or 'none'}", "",
              "## Raw model reply", "", "```", r.get("raw", ""), "```", ""]

@@ -214,6 +214,15 @@ cannot do.
   additions"); seven typed references to a sheet 22 that this LOC record does
   not contain, reported as issues rather than resolved by guessing.
 
+## What existed before, and what was built during the Submission Period
+
+The page index and cross-reference check descend from our public PlanGraph
+repository (MIT, August 2026). Everything else was built October 27–28, 2026:
+the Nemotron scan reader and quadrant pass, the typed-reference pass, the
+four-outcome agent with receipt and quote verification, the evidence pack, the
+app and its static export, the AI Cloud endpoint run, the Token Factory runs,
+the reader comparison, the video recorder and the self-review tool.
+
 ## What's next
 
 The same three steps, ingest, read, index, work on any HABS/HAER/HALS record; a batch runner over loc.gov record IDs lets a preservation office point at its county and get every set answerable. The eyes get trained: Nemotron-Nano-V2-12B VL is fine-tunable on Token Factory, and we have a 228,000-box self-labeled corpus of drawing text with exact positions built for exactly that, because transcription without real localization is the gap every general vision model still has. Then the verified-outcome layer from our product, iNViSU Spatial Memory verified by MAG, so answers a human confirmed are remembered across sets. Vector drawings already need no model at all; the model is for scans and reasoning, which is what makes a small, measured Seer on an ordinary laptop the end of this road.
@@ -270,7 +279,11 @@ with reasoning on it read titles and self-numbers correctly, with it off it
 misread 21 as 2 and 11 as II. Reasoning consumed the ceiling: 28 of 117 calls
 finished on `length` at 8,000 (6,000 per quadrant). It groups lettering into
 fewer, longer entries, and on this set at 1,400 px it read fewer self-numbers
-and reference letterings than the 30B Omni did. (2) Adherence to the four-outcome
+and reference letterings than the 30B Omni did. Asked to review frames of our
+own demo video at 1,280 px, it read the header's "Nebius Token Factory" as
+"Nexus Token Factory" and a model id as "Braintronem"; the brain then
+recommended re-recording a video that had no such typo. Small UI text is
+below its reliable reading size at that resolution. (2) Adherence to the four-outcome
 contract with reasoning on: no run cited a page id that is not in the index; NOT_IN_THE_SET fired cleanly on the balustrade question with the three pages it checked; inline reasoning ran 3,000–16,000 characters per question; one final run omitted the OUTCOME line and stated it in a second short call, which the transcript notes. Without a reasoning
 parser the thinking arrives inline before the answer; parsing from the last
 outcome block made it usable, and a 900-token ceiling was not enough once

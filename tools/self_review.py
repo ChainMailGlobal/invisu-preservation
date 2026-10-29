@@ -356,7 +356,7 @@ def video_pass(out: Path, pkg: dict, video: Path, srt: Path, budget: Budget) -> 
     (out / "video_batches.md").write_text("# Super-VL frame notes\n\n" + "\n".join(notes), encoding="utf-8")
     user = render({k: v for k, v in pkg.items() if k.startswith(("HACKATHON", "DEMO VIDEO"))},
                   {"FRAME NOTES FROM THE VISION MODEL": "\n".join(notes)})
-    r = ask(tf.BRAIN, VIDEO_SYNTH_SYS, user, purpose="video verdict", max_tokens=3000)
+    r = ask(tf.BRAIN, VIDEO_SYNTH_SYS, user, purpose="video verdict", max_tokens=6000)
     r["model"] = tf.BRAIN
     return write(out, "video_verdict.md", r, "Video verdict (Ultra over Super-VL frame notes)")
 
@@ -399,11 +399,11 @@ def main():
     verdicts: dict[str, str] = {}
     try:
         if "judge" in want:
-            r = ask(tf.BRAIN, JUDGE_SYS, user, purpose="judge", max_tokens=4000); r["model"] = tf.BRAIN
+            r = ask(tf.BRAIN, JUDGE_SYS, user, purpose="judge", max_tokens=8000); r["model"] = tf.BRAIN
             verdicts["judge"] = write(out, "judge.md", r, "Judge (Ultra, the organizers' rubric)")
             budget.check("judge")
         if "adversarial" in want:
-            r = ask(tf.BRAIN, ADVERSARIAL_SYS, user, purpose="adversarial", max_tokens=4000); r["model"] = tf.BRAIN
+            r = ask(tf.BRAIN, ADVERSARIAL_SYS, user, purpose="adversarial", max_tokens=8000); r["model"] = tf.BRAIN
             verdicts["adversarial"] = write(out, "adversarial.md", r, "Adversarial judge (Ultra)")
             budget.check("adversarial")
         if "video" in want:
@@ -411,7 +411,7 @@ def main():
             budget.check("video")
         if "premortem" in want:
             extra = {f"EARLIER VERDICT: {k}": v for k, v in verdicts.items()}
-            r = ask(tf.BRAIN, PREMORTEM_SYS, render(pkg, extra), purpose="premortem", max_tokens=4000); r["model"] = tf.BRAIN
+            r = ask(tf.BRAIN, PREMORTEM_SYS, render(pkg, extra), purpose="premortem", max_tokens=8000); r["model"] = tf.BRAIN
             verdicts["premortem"] = write(out, "premortem.md", r, "Pre-mortem (Ultra)")
             budget.check("premortem")
     except tf.CreditsExhausted as e:
