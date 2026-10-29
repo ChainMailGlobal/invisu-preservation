@@ -28,20 +28,39 @@ Best Apps and Agents
 
 ## Inspiration
 
-The Library of Congress holds about 55,000 public-domain documentation sets of
-American buildings — the Historic American Buildings Survey and its engineering
-and landscape siblings. Measured drawings, hand-lettered, scanned at 400 dpi;
-survey photographs; typed data pages. They are the primary record of what the
-country built. Not one of them can be asked a question: the drawings have no
-text layer, the lettering is by hand, and the cross-references are words on the
-sheet ("SEE SHEET 12"), not links. Preservation architects, historians and the
-people who maintain these buildings read them the way they were read in 1964 —
-sheet by sheet, by eye.
+In 1966 someone stood inside the Old Lahaina Courthouse, measured its coral
+walls by hand and lettered the number onto a sheet: twenty-one inches thick.
+They were not thinking about us. They were doing what survey teams had done
+since 1933, writing down exactly what stood so that someone, someday, could ask.
+Fifty-seven years later, on August 8, 2023, the courthouse burned to those
+walls. The sheet did not. It is still there, in the Library of Congress, free to
+anyone, with the lettering as sharp as the day it was inked.
 
-We work on reading construction documents for a living. The question was
-whether an open vision model and an open reasoning model, on a pay-per-token
-cloud, could make one of these sets answerable without a GPU, without
-training, and without ever inventing a sheet.
+There are about 55,000 sets like it: the Historic American Buildings Survey and
+its engineering and landscape siblings. Hand-lettered measured drawings, survey
+photographs, typed data pages. Palaces and churches, mills and bridges and
+one-room schools. Together they are the country's memory of what it built, made
+by people who believed it was worth getting right. And not one of them can be
+asked a question. The drawings have no text layer. The lettering is by hand. The
+cross-references are words on the sheet ("SEE SHEET 12"), not links. A
+preservation architect deciding what to rebuild, a historian, a congregation
+standing in front of its own walls: they read these sets the way they were read
+in 1964, sheet by sheet, by eye, hoping the answer is on the next page.
+
+We read construction documents for a living, in Hawaii, where Lahaina is not a
+headline. We know what it costs to find one dimension in a set, and what it
+costs to find the wrong one. So the question we brought to this hackathon was
+simple to ask and hard to earn: could an open vision model and an open reasoning
+model, on a pay-per-token cloud, give these drawings a voice? Not a voice that
+sounds confident. A voice that answers with the sheet in its hand, boxes the
+lettering it relied on, and says "not in the set" when the record is silent,
+because a memory that invents is worse than no memory at all. Without a GPU of
+our own, without training, so that the county office that needs it most could
+afford it.
+
+The people who made these sheets wrote down what they saw so that it could be
+asked later. We wanted to be the ones who finally let them answer. Nothing in
+what follows invents a sheet. That is the whole idea.
 
 ## What it does
 
