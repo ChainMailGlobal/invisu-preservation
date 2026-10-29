@@ -17,7 +17,10 @@ Built by [iNViSU AI](https://github.com/ChainMailGlobal) for the
 `tools/make_video.py`; every answer on screen is a live call.
 **Live demo:** https://cre808ive-invisu-ask-the-sheet.hf.space/ — this app on a Hugging Face
 Docker Space: Nemotron 3 Ultra on Token Factory answers every question, receipts
-verified in code, sixty questions a day. Lahaina courthouse: https://cre808ive-invisu-ask-lahaina.hf.space/
+verified in code, sixty questions a day. The three Lahaina records are live the
+same way (forty a day each): https://cre808ive-invisu-ask-lahaina.hf.space/
+https://cre808ive-invisu-ask-lahaina-reading-room.hf.space/
+https://cre808ive-invisu-ask-lahaina-hale-aloha.hf.space/
 **Static demo (index only, no model call):** https://cre808ive-invisu-preservation.static.hf.space/
 
 ## Nebius + NVIDIA usage
@@ -189,7 +192,8 @@ The public demo is this app on a Hugging Face **Docker** Space, deployed by
 `tools/deploy_live_space.py`: one commit equal to `git ls-files`, the Token
 Factory key as a Space secret, `ASK_DAILY_CAP=60` so the public copy answers
 sixty questions a day (the local app has no cap). Live: https://cre808ive-invisu-ask-the-sheet.hf.space/
-and, for the Lahaina courthouse, https://cre808ive-invisu-ask-lahaina.hf.space/
+and, for the three Lahaina records, https://cre808ive-invisu-ask-lahaina.hf.space/
+https://cre808ive-invisu-ask-lahaina-reading-room.hf.space/ and https://cre808ive-invisu-ask-lahaina-hale-aloha.hf.space/
 The free **static** Spaces remain: the same page fed by exported JSON, search in
 the browser, no model call ("Ask" labels the outcome MODEL UNAVAILABLE and still
 shows the index hits): https://cre808ive-invisu-preservation.static.hf.space/ —
@@ -235,7 +239,8 @@ Done and verified, from the committed ledger and index:
   no model call)
 - live demo (October 29): the full app with the model on a Hugging Face Docker
   Space, `tools/deploy_live_space.py`, daily cap in `app/server.py`:
-  https://cre808ive-invisu-ask-the-sheet.hf.space/ and https://cre808ive-invisu-ask-lahaina.hf.space/
+  https://cre808ive-invisu-ask-the-sheet.hf.space/ and the three Lahaina records
+  (https://cre808ive-invisu-ask-lahaina.hf.space/, …-reading-room, …-hale-aloha)
 - self-review: `tools/self_review.py` scored this package against the organizers'
   published rubric and tips with Nemotron 3 Ultra and had Nemotron 3.5 Super-VL
   review the video frame by frame (runs kept locally). Applied from it: the
@@ -324,8 +329,8 @@ Factory (Nemotron-3.5-Super-VL, reasoning on) on the night of October 28:
 | Building | Built | HABS | Pages | Sheets | Entries from scans | After the fire | Demo |
 |---|---|---|---|---|---|---|---|
 | Old Lahaina Courthouse | 1859, rebuilt 1925 | HI-9 (loc.gov hi0014) | 17 | 8 | 732 | outer walls standing, roof and interior destroyed | live https://cre808ive-invisu-ask-lahaina.hf.space/ · static https://cre808ive-invisu-lahaina-courthouse.static.hf.space/ |
-| Master's Reading Room | 1834 | HI-13 (hi0015) | 10 | 5 | 487 | coral and stone walls only | https://cre808ive-invisu-lahaina-reading-room.static.hf.space/ |
-| Hale Aloha Church | 1858 | HI-10 (hi0017) | 16 | 6 | 506 | outer walls standing; roof, bell tower and interior destroyed | https://cre808ive-invisu-lahaina-hale-aloha.static.hf.space/ |
+| Master's Reading Room | 1834 | HI-13 (hi0015) | 10 | 5 | 487 | coral and stone walls only | live https://cre808ive-invisu-ask-lahaina-reading-room.hf.space/ · static https://cre808ive-invisu-lahaina-reading-room.static.hf.space/ |
+| Hale Aloha Church | 1858 | HI-10 (hi0017) | 16 | 6 | 506 | outer walls standing; roof, bell tower and interior destroyed | live https://cre808ive-invisu-ask-lahaina-hale-aloha.hf.space/ · static https://cre808ive-invisu-lahaina-hale-aloha.static.hf.space/ |
 
 (Condition after the fire: the Lahaina Historic District record and NPR's report of
 August 16, 2023; the Master's Reading Room from the Maui Historic Trust as quoted

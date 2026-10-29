@@ -21,7 +21,7 @@ Best Apps and Agents
 
 - Repo (MIT): https://github.com/ChainMailGlobal/invisu-preservation
 - Live demo: https://cre808ive-invisu-ask-the-sheet.hf.space/ — this app on a Hugging Face Docker Space; Nemotron 3 Ultra on Token Factory answers every question, receipts verified in code, sixty questions a day
-- Lahaina courthouse, live: https://cre808ive-invisu-ask-lahaina.hf.space/ (static index demos for all three Lahaina records are in the README)
+- Lahaina, live, forty questions a day each: courthouse https://cre808ive-invisu-ask-lahaina.hf.space/ · Master's Reading Room https://cre808ive-invisu-ask-lahaina-reading-room.hf.space/ · Hale Aloha https://cre808ive-invisu-ask-lahaina-hale-aloha.hf.space/
 - Static demo (index only, no model call): https://cre808ive-invisu-preservation.static.hf.space/
 - The same app runs locally from the repo without a cap (README → Run); transcripts in `docs/transcripts/`
 - Video: https://youtu.be/3TxEhdhZjrA
@@ -228,7 +228,8 @@ their walls: the Old Lahaina Courthouse (1859, HABS HI-9, 8 sheets), the Master'
 Reading Room (1834, HI-13, 5 sheets) and Hale Aloha Church (1858, HI-10, 6
 sheets). The same pipeline, unchanged, read all three on Token Factory on the
 night of October 28 (1,725 entries from the scans) and each has its own static
-demo; the courthouse is also live at https://cre808ive-invisu-ask-lahaina.hf.space/
+demo and its own live Space (courthouse https://cre808ive-invisu-ask-lahaina.hf.space/
+reading room https://cre808ive-invisu-ask-lahaina-reading-room.hf.space/ Hale Aloha https://cre808ive-invisu-ask-lahaina-hale-aloha.hf.space/).
 Ask the courthouse drawings what the walls are built of and the answer,
 with the sheet as its receipt, is "ORIGINAL CORAL WALLS 21\" THICK": the walls
 that stood. Ask any of the three what happened in August 2023 and the reader
