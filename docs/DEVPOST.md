@@ -24,7 +24,7 @@ Best Apps and Agents
 - Lahaina, live, forty questions a day each: courthouse https://cre808ive-invisu-ask-lahaina.hf.space/ · Master's Reading Room https://cre808ive-invisu-ask-lahaina-reading-room.hf.space/ · Hale Aloha https://cre808ive-invisu-ask-lahaina-hale-aloha.hf.space/
 - Static demo (index only, no model call): https://cre808ive-invisu-preservation.static.hf.space/
 - The same app runs locally from the repo without a cap (README → Run); transcripts in `docs/transcripts/`
-- Video: https://youtu.be/LrUNF4y_6OA
+- Video: https://youtu.be/al5VYDRvvDM
 
 ## Inspiration
 
