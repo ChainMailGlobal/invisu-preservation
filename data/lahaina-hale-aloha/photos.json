@@ -1,0 +1,47 @@
+[
+ {
+  "kind": "exterior",
+  "subject": "main facade",
+  "view": "front",
+  "coverage": "most of building",
+  "quality": 4,
+  "caption": "A black-and-white photograph of the front of a long, low building with a tiled roof, partially obscured by trees and vegetation, with a dirt yard in the foreground.",
+  "page": 12
+ },
+ {
+  "kind": "exterior",
+  "subject": "building entrance",
+  "view": "front",
+  "coverage": "partial",
+  "quality": 4,
+  "caption": "A black-and-white photograph of the front entrance of a stone building with a wooden door and overgrown vegetation.",
+  "page": 13
+ },
+ {
+  "kind": "interior",
+  "subject": "large room with exposed roof trusses and stone walls",
+  "view": "main hall",
+  "coverage": "most of building",
+  "quality": 4,
+  "caption": "A black-and-white interior view of a spacious, dilapidated room showing exposed wooden roof trusses, stone lower walls, plastered upper walls, multiple windows, and debris-strewn floor joists.",
+  "page": 14
+ },
+ {
+  "kind": "interior",
+  "subject": "ruined room with collapsed floor",
+  "view": "main room",
+  "coverage": "partial",
+  "quality": 4,
+  "caption": "A black-and-white interior view of a dilapidated room showing exposed stone walls, broken wooden flooring, and debris under daylight from windows.",
+  "page": 15
+ },
+ {
+  "kind": "exterior",
+  "subject": "side wall and rear yard",
+  "view": "right side",
+  "coverage": "partial",
+  "quality": 4,
+  "caption": "A black-and-white view of a building's side wall with shingled upper story, stucco and stone lower wall, and a yard with plants and a table.",
+  "page": 16
+ }
+]

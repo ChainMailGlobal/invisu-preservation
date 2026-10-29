@@ -279,7 +279,16 @@ def ask(pdir, question: str, sheet_id: str | None = None, *, thinking="auto",
     # Second check, suggested by our own pre-mortem: the page check catches an
     # invented page id; this catches an invented quote. Every quoted span in the
     # answer must appear, normalized, in the text of a cited page.
-    quotes = [q.strip() for q in re.findall(r"[“\"]([^”\"]{4,160})[”\"]", parsed.get("answer", ""))]
+    # An opening quote follows a space or bracket and precedes a non-space; a
+    # closing quote precedes a space, punctuation or the end. An inch mark
+    # follows a digit (21" THICK) and is neither, so dimensions do not split a
+    # quotation. Fragments that are just receipts ([PG-11]) are not quotes.
+    quotes = [q.strip() for q in re.findall(
+        r"(?:(?<=^)|(?<=[\s(\[,;:]))[“\"](?=\S)([^”\"]{4,160}?)(?<=\S)[”\"](?=[\s.,;:)\]]|$)",
+        parsed.get("answer", "")) if not re.fullmatch(r"[\[\]PG\-\d,;\s]+.*", q.strip()) or "PG-" not in q]
+    quotes = [q for q in quotes if "[PG-" not in q]
+    # an elided quote ("at present… used for living quarters") is two spans
+    quotes = [p.strip(" .") for q in quotes for p in re.split(r"…|\.\.\.", q) if len(p.strip(" .")) >= 4]
     if quotes and parsed.get("receipts"):
         def norm(s: str) -> str:
             return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()

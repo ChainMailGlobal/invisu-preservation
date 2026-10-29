@@ -260,8 +260,8 @@ Token Factory, once the hackathon credits landed later the same day:
 Stated plainly, because a reader that refuses to invent should also say what it
 cannot do.
 
-- One structure in the demo set (Iolani Palace). The pipeline is generic; the
-  evidence is not yet.
+- Two sets, four records: Iolani Palace in depth, and three small Lahaina
+  records read the same way. A county-scale batch is the next step, not a claim.
 - The static Space never calls a model: it is index search over exported JSON.
   The four outcomes, the receipts and their verification exist only in the
   local app (and in the video).
@@ -302,6 +302,38 @@ cannot do.
   fraction scales; sheets 6 and 18 without a readable self-number; seven typed
   references to a sheet 22 the record does not contain, reported as issues
   rather than resolved by guessing.
+
+## Second set: Lahaina, three buildings the 2023 fire burned to their walls
+
+On August 8, 2023 the Lahaina wildfire destroyed most of the Lahaina Historic
+District. Three of its buildings had been measured by HABS in 1966; each now
+stands as outer walls only. The same pipeline, unchanged, read all three on Token
+Factory (Nemotron-3.5-Super-VL, reasoning on) on the night of October 28:
+
+| Building | Built | HABS | Pages | Sheets | Entries from scans | After the fire | Static demo |
+|---|---|---|---|---|---|---|---|
+| Old Lahaina Courthouse | 1859, rebuilt 1925 | HI-9 (loc.gov hi0014) | 17 | 8 | 732 | outer walls standing, roof and interior destroyed | https://cre808ive-invisu-lahaina-courthouse.static.hf.space/ |
+| Master's Reading Room | 1834 | HI-13 (hi0015) | 10 | 5 | 487 | coral and stone walls only | https://cre808ive-invisu-lahaina-reading-room.static.hf.space/ |
+| Hale Aloha Church | 1858 | HI-10 (hi0017) | 16 | 6 | 506 | outer walls standing; roof, bell tower and interior destroyed | https://cre808ive-invisu-lahaina-hale-aloha.static.hf.space/ |
+
+(Condition after the fire: the Lahaina Historic District record and NPR's report of
+August 16, 2023; the Master's Reading Room from the Maui Historic Trust as quoted
+by the Honolulu Star-Advertiser.)
+
+Transcripts in `docs/transcripts/lahaina/` (Nemotron-3-Ultra on Token Factory,
+receipts and quotes verified). "What are the walls built of", asked of the
+courthouse, answers from the drawings: "ORIGINAL CORAL WALLS 21\" THICK" and
+"CORAL AND RUBBLE WALLS WITH CEMENT PLASTER FINISH" (HABS sheets 8 and 5–7), the
+walls that survived. "Where is the bell tower and how tall is it", asked of Hale
+Aloha, finds the bell-tower elevation on sheet 2 and says plainly that no single
+overall height is lettered. "What happened in August 2023", asked of each set,
+comes back NOT IN THE SET: the drawings end in 1966, and the reader does not
+invent what it was not given.
+
+Every sheet's own "SHEET N OF M" number was read; three were misread (a 5 of 5
+read as 8 of 10, a 3 of 6 as 5 of 6, a 2 of 6 as 2 of 5). These sets carry no
+typed cross-references, so nothing resolved through them. Monticello (HABS
+VA-241, 32 sheets) was fetched as a candidate second set and not used.
 
 ## What existed before, and what was built during the Submission Period
 

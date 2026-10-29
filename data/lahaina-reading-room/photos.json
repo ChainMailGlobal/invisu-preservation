@@ -1,0 +1,29 @@
+[
+ {
+  "kind": "exterior",
+  "subject": "two-story wooden house with balcony and stairs",
+  "view": "front",
+  "coverage": "most of building",
+  "quality": 4,
+  "caption": "A black-and-white survey photograph of the front of a two-story wooden house, showing its balcony, exterior stairs, and a historical marker sign.",
+  "page": 8
+ },
+ {
+  "kind": "exterior",
+  "subject": "main facade",
+  "view": "corner",
+  "coverage": "most of building",
+  "quality": 4,
+  "caption": "A two-story white building with a carport and a Volkswagen Beetle parked in front, viewed from a corner angle.",
+  "page": 9
+ },
+ {
+  "kind": "interior",
+  "subject": "exhibition room",
+  "view": "main gallery",
+  "coverage": "most of building",
+  "quality": 4,
+  "caption": "A black-and-white interior view of a museum gallery with display cases, wall-mounted photographs, and a long table under a coffered ceiling.",
+  "page": 10
+ }
+]

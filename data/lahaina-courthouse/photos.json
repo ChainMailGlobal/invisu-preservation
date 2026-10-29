@@ -1,0 +1,56 @@
+[
+ {
+  "kind": "exterior",
+  "subject": "main facade",
+  "view": "front",
+  "coverage": "most of building",
+  "quality": 4,
+  "caption": "A two-story building with a columned portico and balcony, photographed from the front with vintage cars parked in the foreground.",
+  "page": 12
+ },
+ {
+  "kind": "exterior",
+  "subject": "main facade",
+  "view": "front",
+  "coverage": "most of building",
+  "quality": 4,
+  "caption": "A black-and-white photograph of the front of a two-story building with a portico supported by four columns, a second-floor balcony, and vintage cars parked on either side.",
+  "page": 13
+ },
+ {
+  "kind": "exterior",
+  "subject": "main facade",
+  "view": "front",
+  "coverage": "whole building",
+  "quality": 4,
+  "caption": "A two-story white building with a flat roof, six windows, and a central arched entrance, photographed from the front with palm trees and a car visible to the left.",
+  "page": 14
+ },
+ {
+  "kind": "exterior",
+  "subject": "main facade",
+  "view": "front",
+  "coverage": "most of building",
+  "quality": 4,
+  "caption": "A two-story white building with a central portico, viewed from the front under tree branches that cast dappled shadows across the facade.",
+  "page": 15
+ },
+ {
+  "kind": "interior",
+  "subject": "staircase",
+  "view": "entry hall",
+  "coverage": "partial",
+  "quality": 4,
+  "caption": "A black-and-white interior view of a building's entry hall showing a wooden staircase with a metal handrail, a drinking fountain, and a door leading outside.",
+  "page": 16
+ },
+ {
+  "kind": "exterior",
+  "subject": "two-story house with veranda",
+  "view": "right side",
+  "coverage": "partial",
+  "quality": 3,
+  "caption": "A two-story house with a veranda stands behind a picket fence on a dirt road in Lahaina, Maui.",
+  "page": 17
+ }
+]

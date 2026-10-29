@@ -1,0 +1,65 @@
+{
+ "name": "Master's Reading Room, Lahaina (HABS HI-13)",
+ "sources": [
+  {
+   "file": "hi0015cap.pdf",
+   "pages": 1,
+   "offset": 0,
+   "kind": "document"
+  },
+  {
+   "file": "hi0015data.pdf",
+   "pages": 1,
+   "offset": 1,
+   "kind": "document"
+  },
+  {
+   "file": "00001a.tif",
+   "pages": 1,
+   "offset": 2,
+   "kind": "sheet"
+  },
+  {
+   "file": "00002a.tif",
+   "pages": 1,
+   "offset": 3,
+   "kind": "sheet"
+  },
+  {
+   "file": "00003a.tif",
+   "pages": 1,
+   "offset": 4,
+   "kind": "sheet"
+  },
+  {
+   "file": "00004a.tif",
+   "pages": 1,
+   "offset": 5,
+   "kind": "sheet"
+  },
+  {
+   "file": "00005a.tif",
+   "pages": 1,
+   "offset": 6,
+   "kind": "sheet"
+  },
+  {
+   "file": "058669pv.jpg",
+   "pages": 1,
+   "offset": 7,
+   "kind": "photo"
+  },
+  {
+   "file": "058670pv.jpg",
+   "pages": 1,
+   "offset": 8,
+   "kind": "photo"
+  },
+  {
+   "file": "058671pv.jpg",
+   "pages": 1,
+   "offset": 9,
+   "kind": "photo"
+  }
+ ]
+}

@@ -174,8 +174,8 @@ A 30B model on one GPU reads hand lettering well enough to index a set, and it a
 Stated plainly, because a reader that refuses to invent should also say what it
 cannot do.
 
-- One structure in the demo set (Iolani Palace). The pipeline is generic; the
-  evidence is not yet.
+- Two sets, four records: Iolani Palace in depth, and three small Lahaina
+  records read the same way. A county-scale batch is the next step, not a claim.
 - The static Space never calls a model: it is index search over exported JSON.
   The four outcomes, the receipts and their verification exist only in the
   local app (and in the video).
@@ -216,6 +216,19 @@ cannot do.
   additions"); seven typed references to a sheet 22 that this LOC record does
   not contain, reported as issues rather than resolved by guessing.
 
+## Second set: Lahaina
+
+On August 8, 2023 the Lahaina wildfire burned three HABS-measured buildings to
+their walls: the Old Lahaina Courthouse (1859, HABS HI-9, 8 sheets), the Master's
+Reading Room (1834, HI-13, 5 sheets) and Hale Aloha Church (1858, HI-10, 6
+sheets). The same pipeline, unchanged, read all three on Token Factory on the
+night of October 28 (1,725 entries from the scans) and each has its own static
+demo. Ask the courthouse drawings what the walls are built of and the answer,
+with the sheet as its receipt, is "ORIGINAL CORAL WALLS 21\" THICK": the walls
+that stood. Ask any of the three what happened in August 2023 and the reader
+says NOT IN THE SET, because the drawings end in 1966. Transcripts are in
+`docs/transcripts/lahaina/`; the records and their condition are in the README.
+
 ## What existed before, and what was built during the Submission Period
 
 The page index and cross-reference check descend from our public PlanGraph
@@ -223,7 +236,7 @@ repository (MIT, August 2026). Everything else was built October 27–28, 2026:
 the Nemotron scan reader and quadrant pass, the typed-reference pass, the
 four-outcome agent with receipt and quote verification, the evidence pack, the
 app and its static export, the AI Cloud endpoint run, the Token Factory runs,
-the reader comparison, the video recorder and the self-review tool.
+the reader comparison, the video recorder, the self-review tool and the Lahaina set.
 
 ## What's next
 

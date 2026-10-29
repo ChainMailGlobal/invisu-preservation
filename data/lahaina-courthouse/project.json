@@ -1,0 +1,101 @@
+{
+ "name": "Old Lahaina Courthouse (HABS HI-9)",
+ "sources": [
+  {
+   "file": "hi0014cap.pdf",
+   "pages": 1,
+   "offset": 0,
+   "kind": "document"
+  },
+  {
+   "file": "hi0014data.pdf",
+   "pages": 2,
+   "offset": 1,
+   "kind": "document"
+  },
+  {
+   "file": "00001a.tif",
+   "pages": 1,
+   "offset": 3,
+   "kind": "sheet"
+  },
+  {
+   "file": "00002a.tif",
+   "pages": 1,
+   "offset": 4,
+   "kind": "sheet"
+  },
+  {
+   "file": "00003a.tif",
+   "pages": 1,
+   "offset": 5,
+   "kind": "sheet"
+  },
+  {
+   "file": "00004a.tif",
+   "pages": 1,
+   "offset": 6,
+   "kind": "sheet"
+  },
+  {
+   "file": "00005a.tif",
+   "pages": 1,
+   "offset": 7,
+   "kind": "sheet"
+  },
+  {
+   "file": "00006a.tif",
+   "pages": 1,
+   "offset": 8,
+   "kind": "sheet"
+  },
+  {
+   "file": "00007a.tif",
+   "pages": 1,
+   "offset": 9,
+   "kind": "sheet"
+  },
+  {
+   "file": "00008a.tif",
+   "pages": 1,
+   "offset": 10,
+   "kind": "sheet"
+  },
+  {
+   "file": "058672pv.jpg",
+   "pages": 1,
+   "offset": 11,
+   "kind": "photo"
+  },
+  {
+   "file": "058673pv.jpg",
+   "pages": 1,
+   "offset": 12,
+   "kind": "photo"
+  },
+  {
+   "file": "058674pv.jpg",
+   "pages": 1,
+   "offset": 13,
+   "kind": "photo"
+  },
+  {
+   "file": "058675pv.jpg",
+   "pages": 1,
+   "offset": 14,
+   "kind": "photo"
+  },
+  {
+   "file": "058676pv.jpg",
+   "pages": 1,
+   "offset": 15,
+   "kind": "photo"
+  },
+  {
+   "file": "058677pv.jpg",
+   "pages": 1,
+   "offset": 16,
+   "kind": "photo"
+  }
+ ]
+}

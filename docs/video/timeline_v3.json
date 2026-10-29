@@ -1,0 +1,53 @@
+{
+  "screenshots": [
+    {"file": "shot_github.png", "url": "https://github.com/ChainMailGlobal/invisu-preservation", "scroll": 520, "settle_ms": 3000},
+    {"file": "shot_space.png", "url": "https://cre808ive-invisu-preservation.static.hf.space/", "settle_ms": 4000}
+  ],
+  "segments": [
+    {"id": "ask1", "min": 2.0, "pad": 0.3,
+     "do": [{"goto": "{app}/"}, {"wait_ready": true},
+            {"type": "#q", "text": "where is the throne room", "delay_ms": 50}, {"hold": 0.3}, {"click": "#go"}],
+     "say": "Where is the throne room?"},
+
+    {"id": "answer1", "pad": 0.5,
+     "do": [{"wait_outcome": true}, {"hold": 1.0}, {"click_receipt": 0}],
+     "say": "Answered, with the sheet. NVIDIA Nemotron 3 Ultra on Nebius Token Factory answered from the index. Nemotron 3 Nano Omni read the sheet on a Nebius AI Cloud endpoint. The boxes are the lettering it relied on."},
+
+    {"id": "problem", "pad": 0.4,
+     "do": [{"hold": 0.3}],
+     "say": "The Library of Congress holds fifty-five thousand public-domain drawing sets of American buildings. Preservation architects and historians still read them sheet by sheet. None could be asked a question. Until now."},
+
+    {"id": "set", "pad": 0.4,
+     "do": [{"scroll": "#pages", "px": 1600, "steps": 10, "step_ms": 340}],
+     "say": "This is Iolani Palace, Honolulu, HABS number H I one: eighty-five pages, twenty-three scanned drawing sheets, fifty-seven photographs."},
+
+    {"id": "read", "pad": 0.4,
+     "do": [{"select_page": "PG-14"}, {"hold": 0.5}, {"scroll": "#reading", "px": 900, "steps": 8, "step_ms": 340}],
+     "say": "Nemotron 3 Nano Omni read every sheet on one L40S on Nebius AI Cloud: title, description, every piece of hand lettering with its position. 1,818 entries, read by the model, not typed by us."},
+
+    {"id": "q2", "pad": 0.5,
+     "do": [{"click_chip": 1}, {"wait_outcome": true}, {"hold": 0.5}, {"hover_receipts": true}],
+     "say": "Which sheets show the Richards Street elevation. Ultra answers over the evidence pack the index builds, with the sheets as receipts, verified in code: a page that does not exist is flagged, and every quoted span must be on the page it cites."},
+
+    {"id": "q3", "pad": 0.5,
+     "do": [{"click_chip": 2}, {"wait_outcome": true}, {"hold": 0.5}, {"click_receipt": 0}, {"hold": 0.3}],
+     "say": "What does HABS sheet 12 reference. Historic sheets cross-reference by lettering, SEE SHEET N. We type those into links, so the answer carries the lettering as its receipt."},
+
+    {"id": "q4", "pad": 0.5,
+     "do": [{"type": "#q", "text": "what wood species is the central stair balustrade", "delay_ms": 38}, {"press": "Enter"}, {"wait_outcome": true}, {"hold": 0.7}],
+     "say": "And the question every archive tool gets wrong. What wood is the central stair balustrade. The set does not say, so Nemotron answers: not in the set, with the pages it checked. Four outcomes, nothing else."},
+
+    {"id": "lahaina", "pad": 0.6,
+     "do": [{"goto": "http://localhost:7861/"}, {"wait_ready": true},
+            {"type": "#q", "text": "what are the walls built of", "delay_ms": 38}, {"press": "Enter"}, {"wait_outcome": true}, {"hold": 0.6}, {"click_receipt": 0}],
+     "say": "Lahaina, August eighth, 2023. The Old Lahaina Courthouse burned to its walls. HABS had measured it in 1966. The same reader, unchanged, on those drawings: what are the walls built of? Coral, twenty-one inches thick, with rubble and cement plaster. The walls that stood. Three Lahaina buildings are in the repository; ask them what happened in 2023 and the reader says: not in the set."},
+
+    {"id": "open", "pad": 0.3,
+     "do": [{"overlay": "runs/video/shot_github.png"}, {"hold": 4.0}, {"overlay": "runs/video/shot_space.png"}, {"hold": 2.0}, {"overlay_off": true}],
+     "say": "Open method on open models: MIT on GitHub, public-domain documents from loc dot gov. Nano Omni for the reading, Ultra for the reasoning, both on Nebius. A live demo link is in the description."},
+
+    {"id": "close", "pad": 1.0,
+     "do": [{"goto": "{app}/"}, {"wait_ready": true}, {"click_chip": 0}, {"wait_outcome": true}, {"hold": 0.3}, {"click_receipt": 0}],
+     "say": "Nemotron on Nebius reads it today. Next, we train the eyes on Token Factory. Nothing invents a sheet."}
+  ]
+}
