@@ -1,5 +1,5 @@
 {
-  "pronounce": {"Nebius": "Nebbius", "Iolani": "Eeolani"},
+  "pronounce": {"Nebius": "Nebbius", "Iolani": "Eeolani", "Lahaina": "Lahighna"},
   "screenshots": [
     {"file": "shot_github.png", "url": "https://github.com/ChainMailGlobal/invisu-preservation", "scroll": 520, "settle_ms": 3000},
     {"file": "shot_space.png", "url": "https://cre808ive-invisu-ask-the-sheet.hf.space/", "settle_ms": 9000}
