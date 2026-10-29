@@ -17,6 +17,8 @@ index hits are still returned — the page never crashes on a missing model.
 
 Env: PROJECT_DIR (default data/iolani-palace), TOKEN_FACTORY_API_KEY,
      AGENT_DISABLED=1 (never call the model), AGENT_THINKING=auto|off|on
+     ASK_DAILY_CAP=N (hosted demo: N model calls per UTC day, 0 = no cap),
+     ASK_MAX_CHARS (question length, default 400), ASK_CONCURRENCY (default 2)
 Run: uvicorn app.server:app --host 0.0.0.0 --port 7860
 """
 from __future__ import annotations
@@ -26,6 +28,7 @@ import json
 import os
 import sqlite3
 import tempfile
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -43,9 +46,29 @@ STATIC = Path(__file__).resolve().parent / "static"
 CACHE = Path(os.environ.get("RENDITION_CACHE", tempfile.gettempdir())) / "invisu-thumbs"
 THUMB_W = 220
 ASK_TIMEOUT_S = 480
+ASK_DAILY_CAP = int(os.environ.get("ASK_DAILY_CAP", "0"))      # 0 = no cap (the local app)
+ASK_MAX_CHARS = int(os.environ.get("ASK_MAX_CHARS", "400"))
+ASK_CONCURRENCY = int(os.environ.get("ASK_CONCURRENCY", "2"))
 
 app = FastAPI(title="iNViSU Preservation Reader")
 app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
+_ask_sem = asyncio.Semaphore(ASK_CONCURRENCY)
+_asks = {"day": None, "count": 0}
+
+
+def daily_cap_reason(count: bool = False) -> str | None:
+    """The hosted demo's per-day question cap (UTC day, process-local)."""
+    if not ASK_DAILY_CAP:
+        return None
+    today = time.strftime("%Y-%m-%d", time.gmtime())
+    if _asks["day"] != today:
+        _asks["day"], _asks["count"] = today, 0
+    if _asks["count"] >= ASK_DAILY_CAP:
+        return (f"model unavailable: this public demo answers {ASK_DAILY_CAP} questions a day "
+                f"and has reached it; the count resets at 00:00 UTC. The local app has no cap.")
+    if count:
+        _asks["count"] += 1
+    return None
 
 
 def db() -> sqlite3.Connection:
@@ -109,7 +132,8 @@ def health():
         conn.close()
     return dict(ok=ok, index=str(DB), pages=n, model=tf.BRAIN, provider=tf.PROVIDER, **{"eyes": tf.EYES, "eyes_provider": tf.PROVIDER, **archive.eyes_provenance(PROJECT)},
                 model_callable=model_disabled_reason() is None,
-                model_note=model_disabled_reason())
+                model_note=model_disabled_reason() or daily_cap_reason(),
+                asks_today=_asks["count"], daily_cap=ASK_DAILY_CAP or None)
 
 
 @app.get("/api/set")
@@ -179,6 +203,8 @@ async def ask(req: AskReq):
     q = req.question.strip()
     if not q:
         raise HTTPException(400, "empty question")
+    if len(q) > ASK_MAX_CHARS:
+        raise HTTPException(400, f"question over {ASK_MAX_CHARS} characters")
     conn = db()
     try:
         roots, hits, sheets = local_hits(conn, q)
@@ -186,7 +212,7 @@ async def ask(req: AskReq):
         conn.close()
     base = dict(question=q, sheet_id=req.sheet_id, roots=roots, hits=hits, sheets=sheets,
                 top_sheet=sheets[0]["id"] if sheets else None, model=tf.BRAIN)
-    reason = model_disabled_reason()
+    reason = model_disabled_reason() or daily_cap_reason(count=True)
     if reason:
         return dict(base, outcome="MODEL_UNAVAILABLE", answer=reason, receipts=[],
                     verified=False, notes=[reason], available=False)
@@ -197,12 +223,13 @@ async def ask(req: AskReq):
     max_tokens = int(os.environ.get("AGENT_MAX_TOKENS", "900"))
     rep = float(os.environ["AGENT_REP_PENALTY"]) if os.environ.get("AGENT_REP_PENALTY") else None
     try:
-        r = await asyncio.wait_for(
-            loop.run_in_executor(None, lambda: agent.ask(PROJECT, q, req.sheet_id,
-                                                         thinking=thinking,
-                                                         max_tokens=max_tokens,
-                                                         rep_penalty=rep)),
-            timeout=ASK_TIMEOUT_S)
+        async with _ask_sem:
+            r = await asyncio.wait_for(
+                loop.run_in_executor(None, lambda: agent.ask(PROJECT, q, req.sheet_id,
+                                                             thinking=thinking,
+                                                             max_tokens=max_tokens,
+                                                             rep_penalty=rep)),
+                timeout=ASK_TIMEOUT_S)
     except tf.CreditsExhausted:
         reason = "model unavailable: credits (Token Factory answered HTTP 402)"
     except tf.SpendCapReached as e:
