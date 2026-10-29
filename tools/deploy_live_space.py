@@ -50,9 +50,10 @@ SKIP_PREFIXES = ("site/", "site_", "runs/", ".github/")
 
 def space_readme(title: str, project: str) -> bytes:
     body = (ROOT / "README.md").read_text(encoding="utf-8")
+    short = f"Ask a Library of Congress drawing set; get the sheet ({project})"[:60]
     front = (
         "---\n"
-        f"title: {title}\n"
+        f"title: {json.dumps(title)}\n"
         "emoji: \U0001f4d0\n"
         "colorFrom: gray\n"
         "colorTo: blue\n"
@@ -60,7 +61,7 @@ def space_readme(title: str, project: str) -> bytes:
         "app_port: 7860\n"
         "pinned: false\n"
         "license: mit\n"
-        f"short_description: Ask a Library of Congress drawing set; get the sheet ({project})\n"
+        f"short_description: {json.dumps(short)}\n"
         "---\n\n"
         "> **Live app.** Every question here is answered by NVIDIA Nemotron 3 Ultra on Nebius Token Factory,\n"
         "> with the receipts verified in code. The public demo answers a capped number of questions per day;\n"
@@ -123,7 +124,7 @@ def main() -> None:
     pj = project_dir / "project.json"
     set_name = json.loads(pj.read_text(encoding="utf-8")).get("name", project_dir.name) if pj.exists() \
         else project_dir.name
-    title = a.title or f"Ask the Sheet: {set_name}"
+    title = a.title or f"Ask the Sheet, {set_name.split(' (')[0]}"
     key = tf.api_key()  # raises NoApiKey when absent; the value is never printed
     variables = {
         "PROJECT_DIR": f"/app/{a.project.strip('/')}",
@@ -139,7 +140,7 @@ def main() -> None:
 
     if a.duplicate_from:
         print(f"== duplicate {a.duplicate_from} -> {a.space} (server-side)")
-        api.duplicate_space(a.duplicate_from, a.space, exist_ok=True,
+        api.duplicate_space(a.duplicate_from, a.space, exist_ok=True, hardware="cpu-basic",
                             variables=[{"key": k, "value": v} for k, v in variables.items()],
                             secrets=[{"key": "TOKEN_FACTORY_API_KEY", "value": key}])
         print("== Space README with this set's title")

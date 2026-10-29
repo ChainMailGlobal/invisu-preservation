@@ -20,8 +20,10 @@ Best Apps and Agents
 ## Links
 
 - Repo (MIT): https://github.com/ChainMailGlobal/invisu-preservation
-- Demo (static: browse, search, deep links — no model call): https://cre808ive-invisu-preservation.static.hf.space/
-- The model-backed app runs locally from the repo (README → Run); the live answers are in the video and in `docs/transcripts/`
+- Live demo: https://cre808ive-invisu-ask-the-sheet.hf.space/ — this app on a Hugging Face Docker Space; Nemotron 3 Ultra on Token Factory answers every question, receipts verified in code, sixty questions a day
+- Lahaina courthouse, live: https://cre808ive-invisu-ask-lahaina.hf.space/ (static index demos for all three Lahaina records are in the README)
+- Static demo (index only, no model call): https://cre808ive-invisu-preservation.static.hf.space/
+- The same app runs locally from the repo without a cap (README → Run); transcripts in `docs/transcripts/`
 - Video: https://youtu.be/3TxEhdhZjrA
 
 ## Inspiration
@@ -107,11 +109,13 @@ verification, and a second call if the model skips its outcome line.
   `issues` (every reference whose target is not in the set).
 - One client talks to Token Factory. It writes a ledger line per call (tokens,
   latency, dollars), enforces a hard spend cap and stops on HTTP 402.
-- The app is FastAPI plus one static page. The public demo is that same page
-  exported to a free Hugging Face static Space (browse, search, deep links; no
-  model call) because Docker Spaces need a paid plan; the UI detects which mode
-  it is in. Dependencies: pymupdf, pillow, fastapi, uvicorn. No GPU, no training,
-  no other inference provider.
+- The app is FastAPI plus one page. The public demo is the app itself on a
+  Hugging Face Docker Space (`tools/deploy_live_space.py`): Nemotron 3 Ultra on
+  Token Factory answers every question, receipts verified in code, sixty
+  questions a day. A free static Space carries the same page without a model
+  call (browse, search, deep links); the UI detects which mode it is in.
+  Dependencies: pymupdf, pillow, fastapi, uvicorn. No GPU, no training, no
+  other inference provider.
 
 Lineage: the index and cross-reference check descend from our public PlanGraph
 repository (MIT).
@@ -176,7 +180,8 @@ cannot do.
 
 - Two sets, four records: Iolani Palace in depth, and three small Lahaina
   records read the same way. A county-scale batch is the next step, not a claim.
-- The static Space never calls a model: it is index search over exported JSON.
+- The static Spaces never call a model: index search over exported JSON. The
+  live Spaces answer a capped number of questions a day on Token Factory.
   The four outcomes, the receipts and their verification exist only in the
   local app (and in the video).
 - Scanned sheets are read at 1,400 px on the long side, so small hand lettering
@@ -223,7 +228,8 @@ their walls: the Old Lahaina Courthouse (1859, HABS HI-9, 8 sheets), the Master'
 Reading Room (1834, HI-13, 5 sheets) and Hale Aloha Church (1858, HI-10, 6
 sheets). The same pipeline, unchanged, read all three on Token Factory on the
 night of October 28 (1,725 entries from the scans) and each has its own static
-demo. Ask the courthouse drawings what the walls are built of and the answer,
+demo; the courthouse is also live at https://cre808ive-invisu-ask-lahaina.hf.space/
+Ask the courthouse drawings what the walls are built of and the answer,
 with the sheet as its receipt, is "ORIGINAL CORAL WALLS 21\" THICK": the walls
 that stood. Ask any of the three what happened in August 2023 and the reader
 says NOT IN THE SET, because the drawings end in 1966. Transcripts are in
@@ -235,7 +241,8 @@ The page index and cross-reference check descend from our public PlanGraph
 repository (MIT, August 2026). Everything else was built October 27–28, 2026:
 the Nemotron scan reader and quadrant pass, the typed-reference pass, the
 four-outcome agent with receipt and quote verification, the evidence pack, the
-app and its static export, the AI Cloud endpoint run, the Token Factory runs,
+app, its static export and the live Docker Space (October 29), the AI Cloud
+endpoint run, the Token Factory runs,
 the reader comparison, the video recorder, the self-review tool and the Lahaina set.
 
 ## What's next
@@ -313,4 +320,4 @@ per model.
 Python, FastAPI, SQLite, PyMuPDF, Pillow, Nebius AI Cloud Serverless AI (L40S
 endpoint), vLLM (the serving engine on that endpoint, not a model), Nebius Token Factory, NVIDIA Nemotron-3-Nano-Omni-30B-A3B
 (FP8), NVIDIA Nemotron-3.5-Super-VL and Nemotron-3-Ultra (design target),
-Hugging Face Spaces (static), Library of Congress HABS/HAER (public domain).
+Hugging Face Spaces (Docker, live; and static), Library of Congress HABS/HAER (public domain).

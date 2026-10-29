@@ -15,7 +15,10 @@ Built by [iNViSU AI](https://github.com/ChainMailGlobal) for the
 
 **Demo video (2:54):** https://youtu.be/3TxEhdhZjrA — recorded from the running app by
 `tools/make_video.py`; every answer on screen is a live call.
-**Static demo:** https://cre808ive-invisu-preservation.static.hf.space/
+**Live demo:** https://cre808ive-invisu-ask-the-sheet.hf.space/ — this app on a Hugging Face
+Docker Space: Nemotron 3 Ultra on Token Factory answers every question, receipts
+verified in code, sixty questions a day. Lahaina courthouse: https://cre808ive-invisu-ask-lahaina.hf.space/
+**Static demo (index only, no model call):** https://cre808ive-invisu-preservation.static.hf.space/
 
 ## Nebius + NVIDIA usage
 
@@ -182,11 +185,15 @@ purpose.
 
 ### Hugging Face Space (static demo)
 
-Docker Spaces need a paid plan, so the public demo is a free **static** Space:
-the same page, fed by exported JSON, with search in the browser and no model
-call ("Ask" labels the outcome MODEL UNAVAILABLE and still shows the index
-hits). Live: https://cre808ive-invisu-preservation.static.hf.space/ — deep links
-`#PG-14` (select a page) and `?q=throne%20room` (run a search).
+The public demo is this app on a Hugging Face **Docker** Space, deployed by
+`tools/deploy_live_space.py`: one commit equal to `git ls-files`, the Token
+Factory key as a Space secret, `ASK_DAILY_CAP=60` so the public copy answers
+sixty questions a day (the local app has no cap). Live: https://cre808ive-invisu-ask-the-sheet.hf.space/
+and, for the Lahaina courthouse, https://cre808ive-invisu-ask-lahaina.hf.space/
+The free **static** Spaces remain: the same page fed by exported JSON, search in
+the browser, no model call ("Ask" labels the outcome MODEL UNAVAILABLE and still
+shows the index hits): https://cre808ive-invisu-preservation.static.hf.space/ —
+deep links `#PG-14` (select a page) and `?q=throne%20room` (run a search).
 
 ```bash
 python -m preservation.export_static   # data/ + index.db -> site/ (JSON, images, index.html)
@@ -225,7 +232,10 @@ Done and verified, from the committed ledger and index:
   2400 px view renditions committed
 - static demo exported and deployed to a free Hugging Face static Space:
   https://cre808ive-invisu-preservation.static.hf.space/ (browse, search, deep links;
-  no model call); `Dockerfile` kept for running the full app elsewhere
+  no model call)
+- live demo (October 29): the full app with the model on a Hugging Face Docker
+  Space, `tools/deploy_live_space.py`, daily cap in `app/server.py`:
+  https://cre808ive-invisu-ask-the-sheet.hf.space/ and https://cre808ive-invisu-ask-lahaina.hf.space/
 - self-review: `tools/self_review.py` scored this package against the organizers'
   published rubric and tips with Nemotron 3 Ultra and had Nemotron 3.5 Super-VL
   review the video frame by frame (runs kept locally). Applied from it: the
@@ -262,7 +272,8 @@ cannot do.
 
 - Two sets, four records: Iolani Palace in depth, and three small Lahaina
   records read the same way. A county-scale batch is the next step, not a claim.
-- The static Space never calls a model: it is index search over exported JSON.
+- The static Spaces never call a model: index search over exported JSON. The
+  live Spaces answer a capped number of questions a day on Token Factory.
   The four outcomes, the receipts and their verification exist only in the
   local app (and in the video).
 - Scanned sheets are read at 1,400 px on the long side, so small hand lettering
@@ -310,9 +321,9 @@ District. Three of its buildings had been measured by HABS in 1966; each now
 stands as outer walls only. The same pipeline, unchanged, read all three on Token
 Factory (Nemotron-3.5-Super-VL, reasoning on) on the night of October 28:
 
-| Building | Built | HABS | Pages | Sheets | Entries from scans | After the fire | Static demo |
+| Building | Built | HABS | Pages | Sheets | Entries from scans | After the fire | Demo |
 |---|---|---|---|---|---|---|---|
-| Old Lahaina Courthouse | 1859, rebuilt 1925 | HI-9 (loc.gov hi0014) | 17 | 8 | 732 | outer walls standing, roof and interior destroyed | https://cre808ive-invisu-lahaina-courthouse.static.hf.space/ |
+| Old Lahaina Courthouse | 1859, rebuilt 1925 | HI-9 (loc.gov hi0014) | 17 | 8 | 732 | outer walls standing, roof and interior destroyed | live https://cre808ive-invisu-ask-lahaina.hf.space/ · static https://cre808ive-invisu-lahaina-courthouse.static.hf.space/ |
 | Master's Reading Room | 1834 | HI-13 (hi0015) | 10 | 5 | 487 | coral and stone walls only | https://cre808ive-invisu-lahaina-reading-room.static.hf.space/ |
 | Hale Aloha Church | 1858 | HI-10 (hi0017) | 16 | 6 | 506 | outer walls standing; roof, bell tower and interior destroyed | https://cre808ive-invisu-lahaina-hale-aloha.static.hf.space/ |
 
@@ -342,7 +353,7 @@ The page index and the cross-reference check descend from our public
 August 2026). Everything else in this repository was built on October 27–28,
 2026, inside the Submission Period: the Nemotron scan reader and its quadrant
 pass, the typed-reference pass, the four-outcome agent with receipt and quote
-verification, the evidence pack, the FastAPI app and its static export, the
+verification, the evidence pack, the FastAPI app, its static export and the live Docker Space (October 29), the
 Nebius AI Cloud endpoint run, the Token Factory runs, the reader comparison, the
 video recorder and the self-review tool. The commit history is the record.
 

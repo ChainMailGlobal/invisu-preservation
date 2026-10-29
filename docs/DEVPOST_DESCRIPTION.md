@@ -16,6 +16,6 @@ Built during the Submission Period. The page index and cross-reference check des
 
 Found by reading the model's output, not the logs: a repetition loop at temperature 0, a bare JSON array the first parser dropped as "+0", boxes mixing pixel and fraction scales, inline reasoning without a parser, a brain that read a reference backwards until the pack named each link's direction. All handled in code.
 
-Limits. Two sets, four records; a county-scale batch is the next step. The public Space is index search over exported JSON with no model call; the live outcomes are in the video and the local app. Small lettering can be missed at 1,400 px. Boxes point at lettering. A verified page is not a verified reading. English only.
+Limits. Two sets, four records; a county-scale batch is the next step. The public Space answers sixty questions a day; the local app has no cap. Small lettering can be missed at 1,400 px. Boxes point at lettering. A verified page is not a verified reading. English only.
 
 Next. A batch runner over loc.gov record IDs so a preservation office can point at its county and get every set answerable. Fine-tune Nemotron-Nano-V2-12B VL on Token Factory on our 228,000-box drawing-text corpus. Then iNViSU Spatial Memory verified by MAG, so answers a human confirmed are remembered across sets. Open method on open models: MIT on GitHub, documents public domain from loc.gov.
