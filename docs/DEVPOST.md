@@ -57,9 +57,10 @@ several redrawn from 1903 plans, and 57 photographs). Ask it a question.
 
 Exactly four outcomes are allowed: answered with receipts, answered from
 memory with its date (flagged as not confirmed by the set), not in the set,
-unknown entity. Receipts are verified in code: a cited page that is not in the
-index is flagged and the answer is marked unverified. Numbers, areas, dates and
-sheet numbers are never estimated.
+unknown entity. Receipts are verified in code in two steps: a cited page that is not in the
+index is flagged, and every span the answer quotes must appear on a cited page,
+or the answer is marked unverified with the missing quote named. Numbers,
+areas, dates and sheet numbers are never estimated.
 
 Read by the model, not typed by us: 1,818 text entries and
 23 sheet titles across the 23 scanned sheets.
@@ -135,7 +136,7 @@ repository (MIT).
   bare JSON array back instead of the requested object; the first parser
   silently dropped all 92 replies and reported "+0" per sheet. Zero is a result
   that has to be read. (3) Boxes can mix pixels and fractions inside one box.
-  All three are handled in `read_scans.py` and reported in the feedback below.
+  All three are handled in `read_scans.py` and reported in the feedback form.
 - **Credits.** On the night we started the build the Token Factory account
   answered `402 credit_balance_exhausted` on the first call — and so did the
   separate Nebius AI Studio pot. We built everything that needs no model call
@@ -152,8 +153,9 @@ repository (MIT).
 ## Accomplishments we are proud of
 
 A public-domain drawing set that answers questions with receipts, on open
-models, for about $1.59 of GPU time of inference (253 calls, 1,857,971 tokens —
-from the committed ledger). And a reader that says "not in the set" when the set
+models, for about $1.59 of GPU time on the AI Cloud run (253 calls, 1,857,971
+tokens, from the committed ledger), plus the Token Factory calls recorded,
+unpriced, in the same ledger. And a reader that says "not in the set" when the set
 does not say.
 
 And a measurement the credits allowed: the same 23 sheets read by
