@@ -61,11 +61,16 @@ def tts_sapi(text: str, path: Path) -> None:
     subprocess.run(["powershell", "-NoProfile", "-Command", ps], check=True, capture_output=True)
 
 
-def narrate(segments: list[dict], out: Path, *, voice: str, rate: str, sapi: bool, mute: bool) -> list[float]:
-    """One audio file per segment; returns their durations (0 when muted)."""
+def narrate(segments: list[dict], out: Path, *, voice: str, rate: str, sapi: bool, mute: bool,
+            pronounce: dict | None = None) -> list[float]:
+    """One audio file per segment; returns their durations (0 when muted).
+    `pronounce` maps a written word to the spelling the voice should read
+    (e.g. Nebius -> Nebbius); captions keep the written form."""
     durs = []
     for i, seg in enumerate(segments):
         text = seg.get("say", "").strip()
+        for word, said in (pronounce or {}).items():
+            text = text.replace(word, said)
         if mute or not text:
             durs.append(0.0)
             continue
@@ -86,7 +91,7 @@ def narrate(segments: list[dict], out: Path, *, voice: str, rate: str, sapi: boo
         d = ffprobe_duration(path)
         seg["_audio"] = str(path)
         durs.append(d)
-        print(f"  say {i:02d}: {d:5.1f}s  {text[:70]}", flush=True)
+        print(f"  say {i:02d}: {d:5.1f}s  {seg.get('say', '')[:70]}", flush=True)
     return durs
 
 
@@ -340,7 +345,8 @@ def main():
     if unfilled:
         raise SystemExit(f"timeline still has placeholders: {unfilled}")
     print("narration:", flush=True)
-    durs = narrate(segs, out, voice=a.voice, rate=a.rate, sapi=a.sapi, mute=a.mute)
+    durs = narrate(segs, out, voice=a.voice, rate=a.rate, sapi=a.sapi, mute=a.mute,
+                   pronounce=timeline.get("pronounce"))
     print(f"  total narration {sum(durs):.1f}s", flush=True)
     print("recording:", flush=True)
     webm, starts, lengths, waits, total = record(timeline, out, a.app, durs)
